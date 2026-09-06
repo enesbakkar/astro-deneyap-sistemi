@@ -90,6 +90,15 @@ const uIdx = {}; USER.forEach(u => uIdx[u.id] = u);
 const uOf = bid => USER.find(u => u.birim === bid);
 
 const KAT = ["Atölye Operasyonu","Eğitmen ve Öğrenci İşleri","Etkinlik ve Tanıtım","Raporlama"];
+const KOORDINATORLUK = [
+  "Bursiyer Koordinatörlüğü",
+  "Eğitmen & Müfredat Koordinatörlüğü",
+  "Yarışmalar & Projeler Koordinatörlüğü",
+  "Kurumsal İletişim & Etkinlik Koordinatörlüğü",
+  "Saha & Operasyon Koordinatörlüğü",
+  "Lojistik & Envanter Koordinatörlüğü",
+  "AR-GE & Teknoloji Koordinatörlüğü"
+];
 const ONCELIK = ["Kritik","Yüksek","Normal","Düşük"];
 const prColor = p => ({ "Kritik":"#E63946","Yüksek":"#F77F00","Normal":"#0284C7","Düşük":"#94A3B8" }[p]);
 
@@ -705,7 +714,7 @@ let S = {
   userId: null,
   view: "pano",
   gorevId: null,
-  filt: { bolge:"", il:"", birim:"", komisyon:"", durum:"", oncelik:"", kat:"", q:"" },
+  filt: { bolge:"", il:"", birim:"", komisyon:"", koord:"", durum:"", oncelik:"", kat:"", q:"" },
   sekme: "yuksek",
   sor: false,
   sorGecmis: [],
@@ -737,7 +746,7 @@ const okunmamis = () => NOTIF.filter(n => n.user === S.userId && !n.okundu).leng
 function gorunur() {
   const u = me();
   if (!u) return [];
-  if (u.rol === "il") return TASKS.filter(t => t.birim === u.birim);
-  if (u.rol === "egitmen") return TASKS.filter(t => t.sorumlu === u.id);
+  if (u.rol === "il") return TASKS.filter(t => t.birim === u.birim || t.birim === "__TUM__" || (t.ortakIller && t.ortakIller.includes(u.birim)));
+  if (u.rol === "egitmen") return TASKS.filter(t => t.sorumlu === u.id || (t.ortakIller && t.ortakIller.includes(u.birim)));
   return TASKS.slice();
 }
