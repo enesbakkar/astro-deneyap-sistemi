@@ -19,7 +19,7 @@ const UP = s => String(s).toLocaleUpperCase("tr-TR");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 /* ── Ülke, Bölge, 81 İl ve Uluslararası DENEYAP Atölyeleri Yapısı ── */
-const ULKELER = ["Türkiye","Azerbaycan","Kuzey Kıbrıs (KKTC)","Özbekistan","Katar"];
+const ULKELER = ["Türkiye","Azerbaycan","Kuzey Kıbrıs (KKTC)","Özbekistan"];
 
 const BOLGE = ["Marmara","Ege","Akdeniz","İç Anadolu","Karadeniz","Doğu Anadolu","Güneydoğu Anadolu","Yurtdışı Operasyonları"];
 const IL_BOLGE = {
@@ -30,13 +30,13 @@ const IL_BOLGE = {
   "Karadeniz":["Amasya","Artvin","Bartın","Bayburt","Bolu","Çorum","Düzce","Giresun","Gümüşhane","Karabük","Kastamonu","Ordu","Rize","Samsun","Sinop","Tokat","Trabzon","Zonguldak"],
   "Doğu Anadolu":["Ağrı","Ardahan","Bingöl","Bitlis","Elazığ","Erzincan","Erzurum","Hakkâri","Iğdır","Kars","Malatya","Muş","Tunceli","Van"],
   "Güneydoğu Anadolu":["Adıyaman","Batman","Diyarbakır","Gaziantep","Kilis","Mardin","Siirt","Şanlıurfa","Şırnak"],
-  "Yurtdışı Operasyonları":["Bakü","Lefkoşa","Taşkent","Doha"]
+  "Yurtdışı Operasyonları":["Bakü","Lefkoşa","Taşkent"]
 };
 const ILLER = [];
 BOLGE.forEach(bl => IL_BOLGE[bl].forEach(il => ILLER.push({
   ad: il,
   bolge: bl,
-  ulke: (bl === "Yurtdışı Operasyonları" ? (il === "Bakü" ? "Azerbaycan" : il === "Lefkoşa" ? "Kuzey Kıbrıs (KKTC)" : il === "Taşkent" ? "Özbekistan" : "Katar") : "Türkiye")
+  ulke: (bl === "Yurtdışı Operasyonları" ? (il === "Bakü" ? "Azerbaycan" : il === "Lefkoşa" ? "Kuzey Kıbrıs (KKTC)" : "Özbekistan") : "Türkiye")
 })));
 ILLER.sort((a, b) => a.ad.localeCompare(b.ad, "tr"));
 const ilBolge = {}; ILLER.forEach(x => ilBolge[x.ad] = x.bolge);
