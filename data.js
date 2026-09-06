@@ -79,7 +79,7 @@ const ROL = {
 };
 
 const USER = [
-  { id:"u1", ad:"Selin Aksoy",  rol:"merkez",  birim:null },
+  { id:"u1", ad:"M. Enes Kiraz", rol:"merkez",  birim:null },
   { id:"u2", ad:"Burak Şen",    rol:"koord",   birim:null },
   { id:"u3", ad:"Ayşe Korkmaz", rol:"yonetici",birim:null },
   { id:"u4", ad:"Zeynep Aydın", rol:"il", birim:"b1" },

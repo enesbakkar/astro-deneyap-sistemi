@@ -898,6 +898,29 @@ function vRapor() {
         kpi(gecik.length, "Geciken", "var(--astro-red)") +
         kpi("%" + oran, "Genel Tamamlanma", "var(--astro-blue)") +
       '</div>' +
+      '<!-- Yönetici Sezon Infografik Kartları -->' +
+      '<div style="background:linear-gradient(135deg, #1C2033 0%, #0F172A 100%);padding:20px;border-radius:12px;color:#fff;margin:20px 0">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:10px">' +
+          '<div style="font-weight:800;font-size:15px;color:#F8FAFC;display:flex;align-items:center;gap:8px">' +
+            ic("i-chart") + ' SEZON OPERASYONEL İNFOGRAFİK VE STRATEJİK DEĞERLENDİRME' +
+          '</div>' +
+          '<span style="font-size:11.5px;color:#94A3B8">T3 Vakfı Sezon Sonu Protokol Analizi</span>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px">' +
+          '<div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:10px;border-left:3.5px solid #3B82F6">' +
+            '<div style="font-size:11px;color:#94A3B8;font-weight:700">EN YÜKSEK PERFORMANSLI BÖLGE</div>' +
+            '<div style="font-size:16px;font-weight:800;color:#60A5FA;margin-top:3px">' + (bolgeSatir.length ? esc(bolgeSatir[bolgeSatir.length - 1].bl) + ' (%' + bolgeSatir[bolgeSatir.length - 1].pc + ')' : "—") + '</div>' +
+          '</div>' +
+          '<div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:10px;border-left:3.5px solid #EF4444">' +
+            '<div style="font-size:11px;color:#94A3B8;font-weight:700">GECİKME ORANI EN YÜKSEK ATÖLYE</div>' +
+            '<div style="font-size:16px;font-weight:800;color:#F87171;margin-top:3px">' + (satir.length ? esc(satir[0].b.il) + ' (%' + satir[0].pc + ' Başarı)' : "—") + '</div>' +
+          '</div>' +
+          '<div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:10px;border-left:3.5px solid #10B981">' +
+            '<div style="font-size:11px;color:#94A3B8;font-weight:700">PROTOKOL UYUM ENDEKSİ</div>' +
+            '<div style="font-size:16px;font-weight:800;color:#34D399;margin-top:3px">%' + oran + ' Tamamlanma</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
       '<h4 style="font-family:var(--font-display);font-size:14px;margin:22px 0 10px;font-weight:700">Bölgesel Gerçekleşme</h4>' +
       '<div class="table-wrapper"><table><thead><tr><th>BÖLGE</th><th>ATÖLYE</th><th>GÖREV</th><th>TAMAMLANAN</th><th>GECİKEN</th><th>TAMAMLANMA %</th></tr></thead><tbody>' +
       bolgeSatir.map(x => '<tr><td>' + esc(x.bl) + '</td><td class="tabular-date">' + x.atolye +
@@ -1535,6 +1558,7 @@ function yoneticiInfografikBanner(r) {
   const enDusuk = r[r.length - 1];
   const ortSkor = Math.round(r.reduce((a, x) => a + x.toplam, 0) / r.length);
   const yuksekRiskliCount = r.filter(x => x.toplam >= 50).length;
+  const dusukRiskliCount = r.filter(x => x.toplam < 30).length;
 
   const bolgeMap = {};
   r.forEach(x => {
@@ -1549,44 +1573,76 @@ function yoneticiInfografikBanner(r) {
     atolyeSayisi: x.sayi
   })).sort((a, b) => b.skor - a.skor);
 
-  return '<div class="panel" style="margin-bottom:22px;background:linear-gradient(135deg, #1C2033 0%, #0F172A 100%);color:#FFFFFF;padding:22px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 10px 25px -5px rgba(0,0,0,0.25)">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:14px">' +
-      '<div style="display:flex;align-items:center;gap:12px">' +
-        '<span style="background:rgba(211,47,47,0.25);color:#EF4444;padding:10px;border-radius:10px;display:inline-flex">' + ic("i-chart") + '</span>' +
-        '<div><h3 style="margin:0;font-size:18px;font-weight:800;color:#F8FAFC">TÜRKİYE DENEYAP ATÖLYELERİ YÖNETİCİ RİSK & STRATEJİ İNFOGRAFİĞİ</h3>' +
-        '<span style="font-size:12px;color:#94A3B8">Genel merkez yönetim radarı, risk indeksi ve saha operasyon analizleri</span></div>' +
+  const toplamGorev = TASKS.length;
+  const tamamlananGorev = TASKS.filter(t => t.durum === "Tamamlandı").length;
+  const gorevUyumYuzdesi = Math.round((tamamlananGorev / Math.max(1, toplamGorev)) * 100);
+
+  const envYeterliCount = ENVANTER.filter(e => envDurum(e) === "Yeterli").length;
+  const envStokYuzdesi = Math.round((envYeterliCount / Math.max(1, ENVANTER.length)) * 100);
+
+  return '<div class="panel" style="margin-bottom:22px;background:linear-gradient(135deg, #1C2033 0%, #0F172A 100%);color:#FFFFFF;padding:24px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);box-shadow:0 12px 30px -5px rgba(0,0,0,0.3)">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:16px">' +
+      '<div style="display:flex;align-items:center;gap:14px">' +
+        '<span style="background:linear-gradient(135deg, #D32F2F 0%, #EF4444 100%);color:#FFF;padding:12px;border-radius:12px;display:inline-flex;box-shadow:0 4px 12px rgba(211,47,47,0.4)">' + ic("i-chart") + '</span>' +
+        '<div><h3 style="margin:0;font-size:19px;font-weight:800;color:#F8FAFC;letter-spacing:-0.3px">TÜRKİYE DENEYAP ATÖLYELERİ YÖNETİCİ STRATEJİ & İNFOGRAFİK RADARI</h3>' +
+        '<span style="font-size:12.5px;color:#94A3B8">Genel merkez yönetim radarı, risk indeksi ve saha operasyon analizleri</span></div>' +
       '</div>' +
-      '<span class="badge" style="background:rgba(211,47,47,0.2);color:#F87171;border:1px solid rgba(239,68,68,0.3);font-weight:700;font-size:12px">' + yuksekRiskliCount + ' Atölye Yüksek Riskli</span>' +
+      '<div style="display:flex;gap:8px">' +
+        '<span class="badge" style="background:rgba(239,68,68,0.25);color:#F87171;border:1px solid rgba(239,68,68,0.4);font-weight:700;font-size:12px;padding:6px 12px">' + yuksekRiskliCount + ' Kritik Atölye</span>' +
+        '<span class="badge" style="background:rgba(16,185,129,0.25);color:#34D399;border:1px solid rgba(16,185,129,0.4);font-weight:700;font-size:12px;padding:6px 12px">' + dusukRiskliCount + ' Başarılı Atölye</span>' +
+      '</div>' +
     '</div>' +
 
     '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:22px">' +
-      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;border-left:4px solid #EF4444">' +
+      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:12px;border-left:4px solid #EF4444">' +
         '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">EN YÜKSEK RİSKLİ ATÖLYE</div>' +
-        '<div style="font-size:19px;font-weight:800;color:#F87171;margin:4px 0">' + esc(enYuksek.b.il) + ' (Skor: ' + enYuksek.toplam + ')</div>' +
+        '<div style="font-size:20px;font-weight:800;color:#F87171;margin:4px 0">' + esc(enYuksek.b.il) + ' <span style="font-size:13px;color:#FCA5A5">(Skor: ' + enYuksek.toplam + ')</span></div>' +
         '<div style="font-size:11.5px;color:#CBD5E1">' + esc(enYuksek.b.ad) + ' · Müdahale Gerekli</div>' +
       '</div>' +
 
-      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;border-left:4px solid #10B981">' +
+      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:12px;border-left:4px solid #10B981">' +
         '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">EN GÜVENLİ / BAŞARILI ATÖLYE</div>' +
-        '<div style="font-size:19px;font-weight:800;color:#34D399;margin:4px 0">' + esc(enDusuk.b.il) + ' (Skor: ' + enDusuk.toplam + ')</div>' +
+        '<div style="font-size:20px;font-weight:800;color:#34D399;margin:4px 0">' + esc(enDusuk.b.il) + ' <span style="font-size:13px;color:#A7F3D0">(Skor: ' + enDusuk.toplam + ')</span></div>' +
         '<div style="font-size:11.5px;color:#CBD5E1">' + esc(enDusuk.b.ad) + ' · Yüksek Performans</div>' +
       '</div>' +
 
-      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;border-left:4px solid #3B82F6">' +
-        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">TÜRKİYE ORTALAMA RİSK ENDEKSİ</div>' +
-        '<div style="font-size:19px;font-weight:800;color:#60A5FA;margin:4px 0">' + ortSkor + ' / 100</div>' +
-        '<div style="font-size:11.5px;color:#CBD5E1">12 Atölye Birleşik Risk Skoru</div>' +
+      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:12px;border-left:4px solid #3B82F6">' +
+        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">TÜRKİYE BİRLEŞİK RİSK ENDEKSİ</div>' +
+        '<div style="font-size:20px;font-weight:800;color:#60A5FA;margin:4px 0">' + ortSkor + ' / 100</div>' +
+        '<div style="font-size:11.5px;color:#CBD5E1">12 Atölye Genel Ağırlıklı Ortalaması</div>' +
       '</div>' +
 
-      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;border-left:4px solid #F59E0B">' +
-        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">AKSAKLIK UYARI SAYISI</div>' +
-        '<div style="font-size:19px;font-weight:800;color:#FBBF24;margin:4px 0">' + TASKS.filter(t => t.durum === "Gecikti").length + ' Geciken Görev</div>' +
-        '<div style="font-size:11.5px;color:#CBD5E1">Takip Gerektiren İşlemler</div>' +
+      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:12px;border-left:4px solid #F59E0B">' +
+        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">SAHA AKSAKLIK UYARILARI</div>' +
+        '<div style="font-size:20px;font-weight:800;color:#FBBF24;margin:4px 0">' + TASKS.filter(t => t.durum === "Gecikti").length + ' Gecikme Uyarısı</div>' +
+        '<div style="font-size:11.5px;color:#CBD5E1">Öncelikli Takip Gerektiren Görev</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="background:rgba(255,255,255,0.03);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);margin-bottom:20px">' +
+      '<div style="font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:14px">GENEL MERKEZ OPERASYONEL İNFOGRAFİK METRİKLERİ</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px">' +
+        '<div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:#CBD5E1;font-weight:600">Görev Tamamlanma Uyum Oranı</span><b style="color:#60A5FA">%' + gorevUyumYuzdesi + '</b></div>' +
+          '<div style="height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden"><div style="width:' + gorevUyumYuzdesi + '%;height:100%;background:linear-gradient(90deg, #3B82F6, #60A5FA);border-radius:4px"></div></div>' +
+        '</div>' +
+        '<div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:#CBD5E1;font-weight:600">Envanter & Stok Yeterliliği</span><b style="color:#34D399">%' + envStokYuzdesi + '</b></div>' +
+          '<div style="height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden"><div style="width:' + envStokYuzdesi + '%;height:100%;background:linear-gradient(90deg, #10B981, #34D399);border-radius:4px"></div></div>' +
+        '</div>' +
+        '<div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:#CBD5E1;font-weight:600">Sınıf Katılım & Yoklama Disiplini</span><b style="color:#FBBF24">%92</b></div>' +
+          '<div style="height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden"><div style="width:92%;height:100%;background:linear-gradient(90deg, #F59E0B, #FBBF24);border-radius:4px"></div></div>' +
+        '</div>' +
+        '<div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:#CBD5E1;font-weight:600">Protokol & Sezon Müfredat Hazırlığı</span><b style="color:#A78BFA">%88</b></div>' +
+          '<div style="height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden"><div style="width:88%;height:100%;background:linear-gradient(90deg, #8B5CF6, #A78BFA);border-radius:4px"></div></div>' +
+        '</div>' +
       '</div>' +
     '</div>' +
 
     '<div>' +
-      '<div style="font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:12px">BÖLGELER BAZINDA ORTALAMA RİSK DAĞILIMI (İNFOGRAFİK PERFORMANS)</div>' +
+      '<div style="font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:12px">BÖLGELER BAZINDA ORTALAMA RİSK DAĞILIMI (İNFOGRAFİK BÖLGE ISI HARİTASI)</div>' +
       '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px">' +
         bolgeSiralama.map((item) => {
           const cls = item.skor >= 50 ? "#EF4444" : item.skor >= 30 ? "#F59E0B" : "#10B981";
