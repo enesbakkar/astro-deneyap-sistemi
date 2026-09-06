@@ -1119,14 +1119,11 @@ function fazOzet(bidler) {
 
 function talepFormuPanel(bid) {
   const u = me();
+  const b = bIdx[bid] || bIdx["b1"];
   return '<div class="panel" style="margin-bottom:18px;border:1.5px solid #0284C7;background:#F0F9FF">' +
-    '<div class="panel-header" style="background:#E0F2FE;color:#0369A1"><span>' + ic("i-box") + ' Genel Merkeze Malzeme Talebi İlet</span></div>' +
+    '<div class="panel-header" style="background:#E0F2FE;color:#0369A1"><span>' + ic("i-box") + ' Genel Merkeze Malzeme Talebi İlet (' + esc(b.il + " / " + b.ad) + ')</span></div>' +
     '<div class="panel-body">' +
       '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;align-items:flex-end">' +
-        (u.rol === "merkez" || u.rol === "koord" ?
-          '<div class="form-group"><label style="color:#0369A1">TALEP EDEN BİRİM</label><select id="tlpBirim">' +
-            BIRIM.map(b => '<option value="' + b.id + '">' + esc(b.il + " / " + b.ad) + '</option>').join('') +
-          '</select></div>' : '') +
         '<div class="form-group" style="flex:1.5"><label style="color:#0369A1">TALEP EDİLEN MALZEME</label>' +
           '<select id="tlpMalzeme">' +
             ENV_KATALOG.map(m => '<option value="' + esc(m.ad) + '">' + esc(m.ad) + ' (' + esc(m.kat) + ')</option>').join('') +
@@ -1207,8 +1204,8 @@ function vEnvanter() {
   const genelPc = Math.round(oz.reduce((a, x) => a + x.yeterli, 0) / Math.max(1, oz.reduce((a, x) => a + x.toplam, 0)) * 100);
 
   return page(kilitli ? bIdx[u.birim].il + " / " + bIdx[u.birim].ad : "Atölye Altyapısı", "Envanter ve Malzeme Yönetimi",
-    '<button class="btn" style="background:#0284C7" data-envtalepac="1">' + ic("i-box") +
-      (S.envTalepFormAcik ? "Talebi Gizle" : "Merkeze Malzeme Talebi İlet") + '</button>' +
+    (kilitli ? '<button class="btn" style="background:#0284C7" data-envtalepac="1">' + ic("i-box") +
+      (S.envTalepFormAcik ? "Talebi Gizle" : "Merkeze Malzeme Talebi İlet") + '</button>' : '') +
     (kilitli ? '<button class="btn" data-envekleac="1">' + ic("i-plus") +
       (S.envEkleAcik ? "Formu Gizle" : "Katalogdan Malzeme Ekle") + '</button>' : '') +
     (yaz ? '<button class="btn ghost" data-envsayim="1">' + ic("i-check") + 'Sayımı Bugüne İşle</button>' : '') +
