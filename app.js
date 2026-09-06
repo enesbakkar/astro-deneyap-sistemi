@@ -821,7 +821,7 @@ function vAyristirici() {
       modSekme("pdf", "PDF & Word Tutanağı", "i-file") +
       modSekme("excel", "Excel / CSV Görev Tablosu", "i-down") +
     '</div>' +
-    '<div class="panel" style="max-width:980px"><div class="panel-body">' +
+    '<div class="panel"><div class="panel-body">' +
       girisHtml +
     '</div></div>' +
     (r ? ayrisSonucPanel(r) : ''));
@@ -829,7 +829,7 @@ function vAyristirici() {
 
 function ayrisSonucPanel(r) {
   const belirsiz = r.liste.filter(x => x.belirsiz).length;
-  return '<div class="panel" style="margin-top:18px;max-width:1120px">' +
+  return '<div class="panel" style="margin-top:18px">' +
     '<div class="panel-header"><span>' + ic("i-wand") + ' Ayrıştırma ve Doğrulama Tablosu</span><span class="badge-count">' + r.liste.length + ' görev tespit edildi</span></div>' +
     '<div class="panel-body">' +
       '<div class="ai-card" style="margin-bottom:16px"><span class="ai-tag">' + ic("i-wand") + 'YAPAY ZEKÂ ANALİZ SONUCU</span>' +
@@ -1845,7 +1845,15 @@ document.addEventListener("click", e => {
     }
   }
 
-  if (d.ayrismod) { S.ayrisMod = d.ayrismod; S.ayrisSonuc = null; render(); return; }
+  if (d.ayrismod) {
+    S.ayrisMod = d.ayrismod;
+    const m = d.ayrismod;
+    const metin = m === "ses" ? MOCK_METIN_SES : m === "pdf" ? MOCK_METIN_PDF : m === "excel" ? MOCK_METIN_EXCEL : ORNEK;
+    S.ayrisSonuc = { metin, liste: ayristir(metin) };
+    const baslik = m === "ses" ? "Toplantı Ses Kaydı (AI Voice)" : m === "pdf" ? "PDF & Word Tutanağı" : m === "excel" ? "Excel / CSV Görev Tablosu" : "Metin & Toplantı Notu";
+    toast(baslik + " moduna geçildi, görevler otomatik ayrıştırıldı.");
+    render(); return;
+  }
   if (d.ayrissesornek) {
     const metin = MOCK_METIN_SES;
     S.ayrisSonuc = { metin, liste: ayristir(metin) };
