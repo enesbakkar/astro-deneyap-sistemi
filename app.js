@@ -450,52 +450,43 @@ function vOlustur() {
               
               '<div class="form-group"><label>' + ic("i-user") + ' ÜLKE SEÇİMİ</label>' +
                 '<select id="c_ulke" onchange="const u=this.value; const selIl=document.getElementById(\'c_il_sec\'); Array.from(selIl.options).forEach(o=>{ if(o.value===\'__TUM__\') return; o.style.display=(!u||!o.dataset.ulke||o.dataset.ulke===u)?\'block\':\'none\'; }); selIl.value=\'__TUM__\';">' +
-                  '<option value="">🌐 Tüm Ülkeler (Uluslararası Kapsam)</option>' +
-                  ULKELER.map(u => '<option value="' + esc(u) + '">' + (u === "Türkiye" ? "🇹🇷 " : u === "Azerbaycan" ? "🇦🇿 " : u === "KKTC" ? "🇹🇷 " : u === "Özbekistan" ? "🇺🇿 " : "🌐 ") + esc(u) + '</option>').join('') +
+                  '<option value="">Tüm Ülkeler (Uluslararası Kapsam)</option>' +
+                  ULKELER.map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('') +
                 '</select>' +
               '</div>' +
 
               '<div class="form-group"><label>' + ic("i-user") + ' İL KAPSAMI SEÇİMİ</label>' +
                 '<select id="c_il_sec" onchange="const il=this.value; const selB=document.getElementById(\'c_b\'); Array.from(selB.options).forEach(o=>{ if(o.value===\'__TUM__\') return; o.style.display=(!il||!o.dataset.il||o.dataset.il===il)?\'block\':\'none\'; }); selB.value=\'__TUM__\';">' +
-                  '<option value="__TUM__" data-ulke="">📍 [Tüm İller / Genel Kapsam]</option>' +
-                  '<optgroup label="🇹🇷 Türkiye (81 İl)">' +
-                    ILLER.filter(x => x.ulke === "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="Türkiye">🏛️ ' + esc(x.ad) + '</option>').join('') +
+                  '<option value="__TUM__" data-ulke="">[Tüm İller / Genel Kapsam]</option>' +
+                  '<optgroup label="Türkiye (81 İl)">' +
+                    ILLER.filter(x => x.ulke === "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="Türkiye">' + esc(x.ad) + '</option>').join('') +
                   '</optgroup>' +
-                  '<optgroup label="🌍 Uluslararası İller / Merkezler">' +
-                    ILLER.filter(x => x.ulke !== "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="' + esc(x.ulke) + '">🌍 ' + esc(x.ad) + ' (' + esc(x.ulke) + ')</option>').join('') +
+                  '<optgroup label="Uluslararası İller / Merkezler">' +
+                    ILLER.filter(x => x.ulke !== "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="' + esc(x.ulke) + '">' + esc(x.ad) + ' (' + esc(x.ulke) + ')</option>').join('') +
                   '</optgroup>' +
                 '</select>' +
               '</div>' +
 
               '<div class="form-group"><label>' + ic("i-box") + ' DENEYAP ATÖLYESİ (BİRİM)</label>' +
                 '<select id="c_b">' +
-                  '<option value="__TUM__" data-il="">🏬 [Tüm Atölyelere Atansın]</option>' +
-                  BIRIM.map(b => '<option value="' + b.id + '" data-il="' + esc(b.il) + '">🏢 ' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
+                  '<option value="__TUM__" data-il="">[Tüm Atölyelere Atansın]</option>' +
+                  BIRIM.map(b => '<option value="' + b.id + '" data-il="' + esc(b.il) + '">' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
                 '</select>' +
               '</div>' +
 
               '<div class="form-group"><label>' + ic("i-user") + ' KOORDİNATÖRLÜK</label>' +
                 '<select id="c_koord">' +
-                  '<option value="">📋 — Genel Operasyon —</option>' +
-                  KOORDINATORLUK.map(k => {
-                    const icn = k.includes("Bursiyer") ? "🎓 " : k.includes("Yarışma") ? "🏆 " : k.includes("Eğitmen") ? "🔬 " : k.includes("Atölye") ? "🛠️ " : k.includes("Tanıtım") ? "📣 " : "📋 ";
-                    return '<option value="' + esc(k) + '">' + icn + esc(k) + '</option>';
-                  }).join('') +
+                  '<option value="">— Genel Operasyon —</option>' +
+                  KOORDINATORLUK.map(k => '<option value="' + esc(k) + '">' + esc(k) + '</option>').join('') +
                 '</select>' +
               '</div>' +
 
               '<div class="form-group"><label>' + ic("i-grid") + ' KATEGORİ</label>' +
-                '<select id="c_k">' + KAT.map(k => {
-                  const icn = k.includes("Atölye") ? "📁 " : k.includes("Sayım") ? "📋 " : k.includes("Malzeme") ? "🛠️ " : k.includes("Eğitmen") ? "🎓 " : k.includes("Rapor") ? "📊 " : k.includes("Kurumsal") ? "🏢 " : "🚨 ";
-                  return '<option value="' + esc(k) + '">' + icn + esc(k) + '</option>';
-                }).join('') + '</select>' +
+                '<select id="c_k">' + KAT.map(k => '<option value="' + esc(k) + '">' + esc(k) + '</option>').join('') + '</select>' +
               '</div>' +
 
               '<div class="form-group"><label>' + ic("i-alert") + ' ÖNCELİK SEVİYESİ</label>' +
-                '<select id="c_o">' + ONCELIK.map(o => {
-                  const icn = o === "Acil" ? "🔴 " : o === "Yüksek" ? "🟧 " : o === "Normal" ? "🟦 " : "⬜ ";
-                  return '<option' + (o === "Normal" ? " selected" : "") + ' value="' + esc(o) + '">' + icn + esc(o) + '</option>';
-                }).join('') + '</select>' +
+                '<select id="c_o">' + ONCELIK.map(o => '<option' + (o === "Normal" ? " selected" : "") + ' value="' + esc(o) + '">' + esc(o) + '</option>').join('') + '</select>' +
               '</div>' +
 
               '<div class="form-group"><label>' + ic("i-clock") + ' TERMİN TARİHİ</label><input type="date" id="c_v" value="' +
@@ -514,10 +505,10 @@ function vOlustur() {
                   '<div>' +
                     '<label style="font-size:11.5px;color:#475569;font-weight:700">FORMAT / TÜR</label>' +
                     '<select id="c_ek_tur">' +
-                      '<option value="pdf">📄 PDF Dokümanı</option>' +
-                      '<option value="gorsel">🖼️ Görsel (PNG/JPG)</option>' +
-                      '<option value="link">🌐 Harici Web URL</option>' +
-                      '<option value="tablo">📊 Excel / Tablo</option>' +
+                      '<option value="pdf">PDF Dokümanı</option>' +
+                      '<option value="gorsel">Görsel (PNG/JPG)</option>' +
+                      '<option value="link">Harici Web URL</option>' +
+                      '<option value="tablo">Excel / Tablo</option>' +
                     '</select>' +
                   '</div>' +
                   '<div>' +
@@ -538,11 +529,11 @@ function vOlustur() {
                   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
                     '<div><label style="font-size:11.5px;color:#475569;font-weight:700">2. ORTAK ATÖLYE</label><select id="c_ortak_b1">' +
                       '<option value="">— Ortak Atölye Seçin —</option>' +
-                      BIRIM.map(b => '<option value="' + b.id + '">🏢 ' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
+                      BIRIM.map(b => '<option value="' + b.id + '">' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
                     '</select></div>' +
                     '<div><label style="font-size:11.5px;color:#475569;font-weight:700">3. ORTAK ATÖLYE (OPSİYONEL)</label><select id="c_ortak_b2">' +
                       '<option value="">— Yok —</option>' +
-                      BIRIM.map(b => '<option value="' + b.id + '">🏢 ' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
+                      BIRIM.map(b => '<option value="' + b.id + '">' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
                     '</select></div>' +
                   '</div>' +
                 '</div>' +
@@ -558,7 +549,7 @@ function vOlustur() {
       '</div>' +
 
       '<div>' +
-        '<!-- Kart 1: Şablonlar -->' +
+        '<!-- Standart Görev Şablonları -->' +
         '<div class="panel" style="margin-bottom:18px">' +
           '<div class="panel-header"><span>' + ic("i-wand") + ' Standart Görev Şablonları</span></div>' +
           '<div class="panel-body">' +
@@ -580,47 +571,14 @@ function vOlustur() {
           '</div>' +
         '</div>' +
 
-        '<!-- Kart 2: Dağıtım Özeti -->' +
-        '<div class="panel" style="margin-bottom:18px">' +
-          '<div class="panel-header"><span>' + ic("i-chart") + ' Görev Dağıtım Özeti</span></div>' +
-          '<div class="panel-body" style="font-size:13px;line-height:1.6;color:#1E293B">' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #E2E8F0">' +
-              '<span><b>Türkiye (81 İl) Kapsamı:</b></span>' +
-              '<span class="badge-count" style="background:#E0F2FE;color:#0369A1;font-weight:700">81 İl Aktif</span>' +
-            '</div>' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #E2E8F0">' +
-              '<span><b>Uluslararası Merkezler:</b></span>' +
-              '<span class="badge-count" style="background:#FEF3C7;color:#92400E;font-weight:700">3 Ülke (Azerbaycan, KKTC, Özbekistan)</span>' +
-            '</div>' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #E2E8F0">' +
-              '<span><b>Toplam DENEYAP Atölyesi:</b></span>' +
-              '<span class="badge-count" style="background:#DCFCE7;color:#166534;font-weight:700">' + BIRIM.length + ' Atölye</span>' +
-            '</div>' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">' +
-              '<span><b>Aktif Koordinatörlükler:</b></span>' +
-              '<span class="badge-count" style="background:#F3E8FF;color:#6B21A8;font-weight:700">6 Birim</span>' +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-
-        '<!-- Kart 3: Operasyonel Yayın Kuralları -->' +
-        '<div class="panel" style="margin-bottom:18px">' +
-          '<div class="panel-header"><span>' + ic("i-bell") + ' Operasyonel Yayın Kuralları</span></div>' +
-          '<div class="panel-body" style="font-size:13px;color:#334155;line-height:1.55">' +
-            '<p style="margin-bottom:10px"><b>1. Bildirim Dağıtımı:</b> Görev yayınlandığında hedef il sorumlusuna ve bağlı tüm ekibe anlık bildirim iletilir.</p>' +
-            '<p style="margin-bottom:10px"><b>2. Risk Skoru Motoru:</b> Görev termin süresine kalan gün ve geçmiş birim gecikmelerine göre otomatik risk skoru hesaplanır.</p>' +
-            '<p><b>3. Revizyon Hakları:</b> Merkez ve koordinatör ekipleri tamamlanan veya devam eden görevlere revizyon talebi ekleyebilir.</p>' +
-          '</div>' +
-        '</div>' +
-
-        '<!-- Kart 4: AI Asistan Hızlı Kısayol -->' +
+        '<!-- AI Asistan Hızlı Kısayol -->' +
         '<div class="panel" style="background:linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);border:1px solid #7DD3FC">' +
           '<div class="panel-body" style="display:flex;flex-direction:column;gap:10px;text-align:center;align-items:center">' +
             '<div style="width:42px;height:42px;border-radius:50%;background:#0284C7;color:#fff;display:grid;place-items:center;box-shadow:0 4px 10px rgba(2,132,199,0.3)">' +
               ic("i-wand") +
             '</div>' +
             '<div style="font-weight:800;font-size:15px;color:#0369A1">Serbest Metinden Görev Üretin</div>' +
-            '<p style="font-size:12px;color:#0369A1;margin:0">Toplantı notu veya e-posta metnini yapıştırarak görev başlığı, termin, öncelik ve birimi otomatik ayrıştırın.</p>' +
+            '<p style="font-size:12.5px;color:#0369A1;margin:0">Toplantı notu veya e-posta metnini yapıştırarak görev başlığı, termin, öncelik ve birimi otomatik ayrıştırın.</p>' +
             '<button class="btn sm" data-go="ayristirici" style="background:#0284C7;margin-top:4px">' + ic("i-wand") + 'Metin Ayrıştırıcıya Git</button>' +
           '</div>' +
         '</div>' +
