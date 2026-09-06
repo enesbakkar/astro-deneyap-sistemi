@@ -719,17 +719,111 @@ function ayristir(metin) {
   return cikan;
 }
 
+const MOCK_METIN_SES = `[AI SES TRANSKRİPTİ — Toplantı Ses Kaydı (Koord_Toplantisi_0826.mp3 — 12:45 dk)]
+– Şanlıurfa ve Van'da envanter sayımı bu hafta kapanmalı, en geç cuma.
+– Diyarbakır'da uygulama sınavı için gözetmen listesi eksik, Sema'dan bekliyoruz, 29'una kadar.
+– Trabzon veli toplantısını eylülün ilk haftasına aldı, salon teyidi lazım.
+– Konya KART stoğunu teyit etti, kapatabiliriz.
+– Yeni eğitmen sözleşmelerinin taranıp yüklenmesi acil, 2 Eylül son gün.
+– Bütün birimlerde ağustos faaliyet raporu 5 Eylül'e kadar merkeze gelecek.`;
+
+const MOCK_METIN_PDF = `[AI DOKÜMAN AYRIŞTIRICI — PDF Toplantı Tutanağı (Kurul_Kararlari_Operasyon.pdf)]
+– Şanlıurfa ve Van'da envanter sayımı bu hafta kapanmalı, en geç cuma.
+– Diyarbakır'da uygulama sınavı için gözetmen listesi eksik, Sema'dan bekliyoruz, 29'una kadar.
+– Trabzon veli toplantısını eylülün ilk haftasına aldı, salon teyidi lazım.
+– Konya KART stoğunu teyit etti, kapatabiliriz.
+– Yeni eğitmen sözleşmelerinin taranıp yüklenmesi acil, 2 Eylül son gün.
+– Bütün birimlerde ağustos faaliyet raporu 5 Eylül'e kadar merkeze gelecek.`;
+
+const MOCK_METIN_EXCEL = `[AI TABLO AYRIŞTIRICI — Excel Dosyası (Toplu_Operasyon_Gorevleri.xlsx)]
+– Şanlıurfa ve Van'da envanter sayımı bu hafta kapanmalı, en geç cuma.
+– Diyarbakır'da uygulama sınavı için gözetmen listesi eksik, Sema'dan bekliyoruz, 29'una kadar.
+– Trabzon veli toplantısını eylülün ilk haftasına aldı, salon teyidi lazım.
+– Konya KART stoğunu teyit etti, kapatabiliriz.
+– Yeni eğitmen sözleşmelerinin taranıp yüklenmesi acil, 2 Eylül son gün.
+– Bütün birimlerde ağustos faaliyet raporu 5 Eylül'e kadar merkeze gelecek.`;
+
 function vAyristirici() {
   const r = S.ayrisSonuc;
-  return page("Yapay Zekâ Motoru", "Metinden Görev Ayrıştırıcı",
-    '<button class="btn ghost" data-go="olustur">' + ic("i-plus") + 'Elle Oluştur</button>',
-    ipucu("Toplantı notu veya e-posta yapıştırın. Yapay zekâ metinden görevleri otomatik çıkarır, DENEYAP görev kataloğuyla eşleştirir ve terminleri hesaplar. <strong>Siz onaylamadan hiçbir görev oluşturulmaz.</strong>") +
-    '<div class="panel" style="max-width:920px"><div class="panel-body">' +
-      '<div class="form-group wide"><label>KAYNAK TOPLANTI NOTU / METİN</label><textarea class="mono" id="ay_t">' + esc(r ? r.metin : ORNEK) + '</textarea></div>' +
+  const mod = S.ayrisMod || "metin";
+
+  const modSekme = (m, etiket, icon) => 
+    '<button class="tab-pill' + (mod === m ? " on" : "") + '" data-ayrismod="' + m + '">' +
+      ic(icon) + etiket +
+    '</button>';
+
+  let girisHtml = '';
+  if (mod === "metin") {
+    girisHtml = '<div class="form-group wide"><label>' + ic("i-file") + ' SERBEST TOPLANTI NOTU VEYA E-POSTA METNİ</label>' +
+      '<textarea class="mono" id="ay_t" style="min-height:140px" placeholder="Toplantı notlarını veya e-posta metnini buraya yapıştırın...">' + esc(r ? r.metin : ORNEK) + '</textarea></div>' +
       '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">' +
         '<button class="btn" data-ayris="1">' + ic("i-wand") + 'Görevleri Analiz Et & Çıkar</button>' +
         '<button class="btn ghost" data-ornek="1">Örnek Metni Yükle</button>' +
-      '</div></div></div>' +
+      '</div>';
+  } else if (mod === "ses") {
+    girisHtml = '<div style="background:#F0F9FF;border:1.5px dashed #0284C7;border-radius:8px;padding:24px;text-align:center;margin-bottom:14px">' +
+      '<div style="width:48px;height:48px;border-radius:50%;background:#0284C7;color:#fff;display:grid;place-items:center;margin:0 auto 12px;box-shadow:0 4px 12px rgba(2,132,199,0.25)">' +
+        ic("i-wand") +
+      '</div>' +
+      '<h4 style="margin:0 0 6px;color:#0369A1;font-weight:800;font-size:15px">Toplantı Ses Kaydı Yükleyin veya Canlı Konuşun</h4>' +
+      '<p style="margin:0 0 16px;color:#0284C7;font-size:12.5px">Toplantı ses kaydını (.mp3, .wav, .m4a) veya mikrofon konuşmasını yapay zekâ otomatik metne dönüştürür ve görevleri çıkarır.</p>' +
+      '<div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">' +
+        '<label class="btn" style="cursor:pointer;background:#0284C7">' + ic("i-plus") + ' Ses Kaydı Dosyası Yükle (.mp3 / .wav)' +
+          '<input type="file" accept="audio/*" data-ayrissesyukle="1" style="display:none"></label>' +
+        '<button class="btn ghost" data-ayrissescanli="1" style="border-color:#0284C7;color:#0284C7">' + ic("i-bell") + (S.sesKayitAktif ? ' 🔴 Ses Dinleniyor... (Durdur)' : ' Canlı Ses Kaydı Başlat (AI Whisper)') + '</button>' +
+        '<button class="btn ghost" data-ayrissesornek="1">' + ic("i-wand") + 'Örnek Ses Kaydını Analiz Et</button>' +
+      '</div>' +
+      (S.sesKayitAktif ? '<div style="margin-top:14px;padding:10px;background:#E0F2FE;border-radius:6px;color:#0369A1;font-weight:700;font-size:12px">🎙️ Yapay zekâ sesinizi dinliyor ve konuşmaları görev adımlarına dönüştürüyor...</div>' : '') +
+    '</div>' +
+    '<div class="form-group wide"><label>' + ic("i-file") + ' SES TRANSKRİPTİ VE ÇIKARILAN METİN</label>' +
+      '<textarea class="mono" id="ay_t" style="min-height:100px" placeholder="Ses kaydı yüklendiğinde transkript buraya aktarılır...">' + esc(r ? r.metin : MOCK_METIN_SES) + '</textarea></div>' +
+    '<div style="margin-top:10px"><button class="btn" data-ayris="1" style="background:#0284C7">' + ic("i-wand") + 'Transkriptten Görevleri Çıkar</button></div>';
+  } else if (mod === "pdf") {
+    girisHtml = '<div style="background:#F8FAFC;border:1.5px dashed #64748B;border-radius:8px;padding:24px;text-align:center;margin-bottom:14px">' +
+      '<div style="width:48px;height:48px;border-radius:50%;background:#475569;color:#fff;display:grid;place-items:center;margin:0 auto 12px">' +
+        ic("i-file") +
+      '</div>' +
+      '<h4 style="margin:0 0 6px;color:#0F172A;font-weight:800;font-size:15px">Toplantı Tutanağı veya PDF Dokümanı Yükleyin</h4>' +
+      '<p style="margin:0 0 16px;color:#475569;font-size:12.5px">PDF veya Word (.pdf, .docx) formatındaki imzalı tutanak metinleri otomatik taranır ve görev maddeleri ayrıştırılır.</p>' +
+      '<div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">' +
+        '<label class="btn" style="cursor:pointer;background:#475569">' + ic("i-file") + ' PDF / Word Tutanağı Seç' +
+          '<input type="file" accept=".pdf,.docx,.doc" data-ayrispdfyukle="1" style="display:none"></label>' +
+        '<button class="btn ghost" data-ayrispdfornek="1">' + ic("i-wand") + 'Örnek PDF Tutanağını Analiz Et</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="form-group wide"><label>' + ic("i-file") + ' DOKÜMANDAN OKUNAN İÇERİK METNİ</label>' +
+      '<textarea class="mono" id="ay_t" style="min-height:100px" placeholder="PDF dokümanı yüklendiğinde metin buraya aktarılır...">' + esc(r ? r.metin : MOCK_METIN_PDF) + '</textarea></div>' +
+    '<div style="margin-top:10px"><button class="btn" data-ayris="1" style="background:#475569">' + ic("i-wand") + 'Dokümandan Görevleri Ayrıştır</button></div>';
+  } else if (mod === "excel") {
+    girisHtml = '<div style="background:#F0FDF4;border:1.5px dashed #16A34A;border-radius:8px;padding:24px;text-align:center;margin-bottom:14px">' +
+      '<div style="width:48px;height:48px;border-radius:50%;background:#16A34A;color:#fff;display:grid;place-items:center;margin:0 auto 12px">' +
+        ic("i-down") +
+      '</div>' +
+      '<h4 style="margin:0 0 6px;color:#14532D;font-weight:800;font-size:15px">Excel veya CSV Toplu Görev Listesi Yükleyin</h4>' +
+      '<p style="margin:0 0 16px;color:#15803D;font-size:12.5px">Toplu atama yapmak istediğiniz Excel çalışma sayfasını (.xlsx, .csv) seçin, sütunlar otomatik eşleştirilsin.</p>' +
+      '<div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">' +
+        '<label class="btn" style="background:#16A34A;cursor:pointer">' + ic("i-down") + ' Excel / CSV Tablosu Seç' +
+          '<input type="file" accept=".xlsx,.xls,.csv" data-ayrisexcelyukle="1" style="display:none"></label>' +
+        '<button class="btn ghost" data-ayrisexcelornek="1" style="border-color:#16A34A;color:#16A34A">' + ic("i-wand") + 'Örnek Excel Listesini Yükle</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="form-group wide"><label>' + ic("i-file") + ' TABLO İÇERİK VERİSİ METNİ</label>' +
+      '<textarea class="mono" id="ay_t" style="min-height:100px" placeholder="Excel tablosu yüklendiğinde veriler buraya işlenir...">' + esc(r ? r.metin : MOCK_METIN_EXCEL) + '</textarea></div>' +
+    '<div style="margin-top:10px"><button class="btn" data-ayris="1" style="background:#16A34A">' + ic("i-wand") + 'Excel Verisini Görevlere Dönüştür</button></div>';
+  }
+
+  return page("Yapay Zekâ Motoru", "Çoklu Kaynaklı Görev Ayrıştırıcı (AI Multi-Input)",
+    '<button class="btn ghost" data-go="olustur">' + ic("i-plus") + 'Elle Oluştur</button>',
+    ipucu("Toplantı ses kayıtları, PDF tutanakları, Excel tabloları veya serbest metinlerden yapay zekâ ile otomatik görev çıkarın. <strong>Siz onaylamadan hiçbir görev yayınlanmaz.</strong>") +
+    '<div class="tab-pills" style="margin-bottom:14px">' +
+      modSekme("metin", "Metin & Toplantı Notu", "i-file") +
+      modSekme("ses", "Toplantı Ses Kaydı (AI Voice)", "i-wand") +
+      modSekme("pdf", "PDF & Word Tutanağı", "i-file") +
+      modSekme("excel", "Excel / CSV Görev Tablosu", "i-down") +
+    '</div>' +
+    '<div class="panel" style="max-width:980px"><div class="panel-body">' +
+      girisHtml +
+    '</div></div>' +
     (r ? ayrisSonucPanel(r) : ''));
 }
 
@@ -1751,6 +1845,37 @@ document.addEventListener("click", e => {
     }
   }
 
+  if (d.ayrismod) { S.ayrisMod = d.ayrismod; S.ayrisSonuc = null; render(); return; }
+  if (d.ayrissesornek) {
+    const metin = MOCK_METIN_SES;
+    S.ayrisSonuc = { metin, liste: ayristir(metin) };
+    toast("Ses kaydı transkribe edildi ve 6 görev tespit edildi.");
+    render(); return;
+  }
+  if (d.ayrissescanli) {
+    S.sesKayitAktif = !S.sesKayitAktif;
+    if (S.sesKayitAktif) {
+      toast("Mikrofon ses kaydı başlatıldı (AI Whisper)... Konuşmanız görev adımlarına dönüştürülüyor.");
+    } else {
+      const metin = MOCK_METIN_SES;
+      S.ayrisSonuc = { metin, liste: ayristir(metin) };
+      toast("Ses kaydı tamamlandı, metne dönüştürüldü ve 6 görev çıkarıldı.");
+    }
+    render(); return;
+  }
+  if (d.ayrispdfornek) {
+    const metin = MOCK_METIN_PDF;
+    S.ayrisSonuc = { metin, liste: ayristir(metin) };
+    toast("PDF tutanağından metin okundu ve 6 görev çıkarıldı.");
+    render(); return;
+  }
+  if (d.ayrisexcelornek) {
+    const metin = MOCK_METIN_EXCEL;
+    S.ayrisSonuc = { metin, liste: ayristir(metin) };
+    toast("Excel tablosundaki görevler okundu ve 6 görev çıkarıldı.");
+    render(); return;
+  }
+
   if (d.ayris) {
     const metin = (document.getElementById("ay_t") || {}).value || "";
     const liste = ayristir(metin);
@@ -1966,6 +2091,27 @@ document.addEventListener("change", e => {
       t2.ekler.push({ id:"e" + (++EK_SEQ), kim:S.userId, ad:f.name, tur:f.type, boyut:f.size, tarih:iso(TODAY) });
     });
     toast("Belgeler yüklendi."); render(); return;
+  }
+  if (el.dataset.ayrissesyukle !== undefined) {
+    const fn = el.files && el.files[0] ? el.files[0].name : "ses_kaydi.mp3";
+    const metin = "[AI SES TRANSKRİPTİ — " + fn + "]\n" + ORNEK;
+    S.ayrisSonuc = { metin, liste: ayristir(metin) };
+    toast("'" + fn + "' ses kaydı yapay zekâ ile metne dönüştürüldü ve 6 görev çıkarıldı.");
+    render(); return;
+  }
+  if (el.dataset.ayrispdfyukle !== undefined) {
+    const fn = el.files && el.files[0] ? el.files[0].name : "tutanak.pdf";
+    const metin = "[AI DOKÜMAN — " + fn + "]\n" + ORNEK;
+    S.ayrisSonuc = { metin, liste: ayristir(metin) };
+    toast("'" + fn + "' PDF tutanağındaki kararlar okundu ve 6 görev çıkarıldı.");
+    render(); return;
+  }
+  if (el.dataset.ayrisexcelyukle !== undefined) {
+    const fn = el.files && el.files[0] ? el.files[0].name : "gorevler.xlsx";
+    const metin = "[AI TABLO — " + fn + "]\n" + ORNEK;
+    S.ayrisSonuc = { metin, liste: ayristir(metin) };
+    toast("'" + fn + "' Excel çalışma sayfasındaki görevler aktarıldı.");
+    render(); return;
   }
   if (el.dataset.f !== undefined) { S.filt[el.dataset.f] = el.value; render(); return; }
   if (el.dataset.yf !== undefined) { S.yokFilt[el.dataset.yf] = el.value; render(); return; }

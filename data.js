@@ -738,7 +738,7 @@ let S = {
   istisna: { ad:"", kat:"Elektronik", faz:"f0", adet:"", gerekce:"" },
   katFaz: "", katYeniAcik: false,
   katYeni: { ad:"", kat:"Elektronik", faz:"f0", min:"", periyot:"60" },
-  ayrisSonuc: null,
+  ayrisSonuc: null, ayrisMod: "metin", ayrisDosya: null, sesKayitAktif: false,
   ayar: { oneriler:true, ipuclari:true, yogunTablo:false },
   gelismis: false,
   duyuruYeniAcik: false, duyuruKapsam: "tumu",
