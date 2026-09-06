@@ -1679,7 +1679,11 @@ function toast(m) { S.toast = m; }
 
 /* ── Event Listener ── */
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-login],[data-go],[data-git],[data-sor],[data-kapat],[data-cikis],[data-ilerle],[data-sekme],[data-clear],[data-create],[data-ayris],[data-ornek],[data-onayla],[data-iptal],[data-aysil],[data-hatirlat],[data-otele],[data-notekle],[data-not],[data-okundu],[data-sorq],[data-sorgonder],[data-bell],[data-bitir],[data-yokbasla],[data-yokset],[data-yokall],[data-yokkaydet],[data-yokiptal],[data-envdelta],[data-envbildir],[data-envsayim],[data-envekleac],[data-envekle],[data-gelismis],[data-katf],[data-ayar],[data-duyuruac],[data-duyuruyayin],[data-duyuruoku],[data-kom],[data-profil],[data-eksil],[data-yorumgonder],[data-yorumcoz],[data-revizyon],[data-aktar],[data-aktarkapat],[data-egtset],[data-yoksekme],[data-yoktemizle]");
+  let t = null, curr = e.target;
+  while (curr && curr !== document.body) {
+    if (curr.dataset && Object.keys(curr.dataset).length > 0) { t = curr; break; }
+    curr = curr.parentElement;
+  }
   if (S.bildirimAcik && !e.target.closest(".bell-wrapper")) { S.bildirimAcik = false; if (!t) { render(); return; } }
   if (!t) return;
   const d = t.dataset;
