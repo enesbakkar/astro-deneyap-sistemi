@@ -443,43 +443,79 @@ function vGorev() {
     '</div>');
 }
 
-/* ── 7. YENİ GÖREV OLUŞTURMA ── */
+/* ── 7. YENİ GÖREV OLUŞTURMA & KADEMELİ LOKASYON FİLTRESİ ── */
+window.guncelleKademeliFiltre = function(tip) {
+  const selU = document.getElementById("c_ulke");
+  const selI = document.getElementById("c_il_sec");
+  const selB = document.getElementById("c_b");
+  if (!selU || !selI || !selB) return;
+
+  const uVal = selU.value;
+  const iVal = selI.value;
+
+  if (tip === 'ulke') {
+    let ilHtml = '<option value="__TUM__">' + (uVal ? '[' + esc(uVal) + '\'deki Tüm İller / Genel Kapsam]' : '[Tüm İller / Genel Kapsam]') + '</option>';
+    const ilList = uVal ? ILLER.filter(x => x.ulke === uVal) : ILLER;
+    ilHtml += ilList.map(x => '<option value="' + esc(x.ad) + '">' + esc(x.ad) + (uVal ? '' : ' (' + esc(x.ulke) + ')') + '</option>').join('');
+    selI.innerHTML = ilHtml;
+    selI.value = "__TUM__";
+
+    guncelleKademeliFiltre('il');
+  } else if (tip === 'il') {
+    let bHtml = '';
+    let bList = BIRIM;
+    if (iVal && iVal !== "__TUM__") {
+      bList = BIRIM.filter(b => b.il === iVal);
+      bHtml += '<option value="__TUM_IL__">[' + esc(iVal) + '\'deki Tüm Atölyeler (' + bList.length + ' Atölye)]</option>';
+    } else if (uVal) {
+      bList = BIRIM.filter(b => b.ulke === uVal);
+      bHtml += '<option value="__TUM__">[' + esc(uVal) + '\'deki Tüm Atölyelere Atansın (' + bList.length + ' Atölye)]</option>';
+    } else {
+      bHtml += '<option value="__TUM__">[Tüm Atölyelere Atansın (' + BIRIM.length + ' Atölye)]</option>';
+    }
+
+    bHtml += bList.map(b => '<option value="' + b.id + '">' + esc(b.il) + ' / ' + esc(b.ad) + '</option>').join('');
+    selB.innerHTML = bHtml;
+    selB.value = (iVal && iVal !== "__TUM__") ? "__TUM_IL__" : "__TUM__";
+  }
+};
+
 function vOlustur() {
   return page("Operasyon", "Yeni Görev Oluştur",
     '<button class="btn ghost" data-go="ayristirici">' + ic("i-wand") + 'Metinden Otomatik Ayrıştır (AI)</button>',
     ipucu("Görev oluşturulduğunda ilgili il sorumlularına, koordinatörlüklere ve operasyon ekibine anlık bildirim iletilir.") +
-    '<div class="grid g-2-1" style="width:100%">' +
+    '<div class="g-create">' +
       '<div>' +
         '<div class="panel">' +
           '<div class="panel-header"><span>' + ic("i-plus") + ' Görev Tanımlama ve Kapsam Bilgileri</span></div>' +
           '<div class="panel-body">' +
-            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">' +
+            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">' +
               '<div class="form-group wide"><label>' + ic("i-list") + ' GÖREV BAŞLIĞI</label><input type="text" id="c_t" placeholder="Örn. Atölye envanter sayımı ve eksik malzeme bildirimi"></div>' +
               '<div class="form-group wide"><label>' + ic("i-file") + ' AÇIKLAMA VEYA GÖREV TALİMATI</label><textarea id="c_d" placeholder="Görev kapsamı, detaylı uygulama talimatları ve beklenen çıktılar..."></textarea></div>' +
               
-              '<div class="form-group"><label>' + ic("i-user") + ' ÜLKE SEÇİMİ</label>' +
-                '<select id="c_ulke" onchange="const u=this.value; const selIl=document.getElementById(\'c_il_sec\'); Array.from(selIl.options).forEach(o=>{ if(o.value===\'__TUM__\') return; o.style.display=(!u||!o.dataset.ulke||o.dataset.ulke===u)?\'block\':\'none\'; }); selIl.value=\'__TUM__\';">' +
+              '<div class="form-group"><label>' + ic("i-user") + ' 1. ÜLKE SEÇİMİ</label>' +
+                '<select id="c_ulke" onchange="guncelleKademeliFiltre(\'ulke\')">' +
                   '<option value="">Tüm Ülkeler (Uluslararası Kapsam)</option>' +
                   ULKELER.map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('') +
                 '</select>' +
               '</div>' +
 
-              '<div class="form-group"><label>' + ic("i-user") + ' İL KAPSAMI SEÇİMİ</label>' +
-                '<select id="c_il_sec" onchange="const il=this.value; const selB=document.getElementById(\'c_b\'); Array.from(selB.options).forEach(o=>{ if(o.value===\'__TUM__\') return; o.style.display=(!il||!o.dataset.il||o.dataset.il===il)?\'block\':\'none\'; }); selB.value=\'__TUM__\';">' +
-                  '<option value="__TUM__" data-ulke="">[Tüm İller / Genel Kapsam]</option>' +
+              '<div class="form-group"><label>' + ic("i-user") + ' 2. İL KAPSAMI SEÇİMİ</label>' +
+                '<select id="c_il_sec" onchange="guncelleKademeliFiltre(\'il\')">' +
+                  '<option value="__TUM__">[Tüm İller / Genel Kapsam]</option>' +
                   '<optgroup label="Türkiye (81 İl)">' +
-                    ILLER.filter(x => x.ulke === "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="Türkiye">' + esc(x.ad) + '</option>').join('') +
+                    ILLER.filter(x => x.ulke === "Türkiye").map(x => '<option value="' + esc(x.ad) + '">' + esc(x.ad) + '</option>').join('') +
                   '</optgroup>' +
                   '<optgroup label="Uluslararası İller / Merkezler">' +
-                    ILLER.filter(x => x.ulke !== "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="' + esc(x.ulke) + '">' + esc(x.ad) + ' (' + esc(x.ulke) + ')</option>').join('') +
+                    ILLER.filter(x => x.ulke !== "Türkiye").map(x => '<option value="' + esc(x.ad) + '">' + esc(x.ad) + ' (' + esc(x.ulke) + ')</option>').join('') +
                   '</optgroup>' +
                 '</select>' +
               '</div>' +
 
-              '<div class="form-group"><label>' + ic("i-box") + ' DENEYAP ATÖLYESİ (BİRİM)</label>' +
+              '<div class="form-group"><label>' + ic("i-box") + ' 3. DENEYAP ATÖLYESİ (BİRİM)</label>' +
                 '<select id="c_b">' +
-                  '<option value="__TUM__" data-il="">[Tüm Atölyelere Atansın]</option>' +
-                  BIRIM.map(b => '<option value="' + b.id + '" data-il="' + esc(b.il) + '">' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
+                  '<option value="__TUM__">[Tüm Atölyelere Atansın (' + BIRIM.length + ' Atölye)]</option>' +
+                  BIRIM.map(b => '<option value="' + b.id + '">' + esc(b.il) + ' / ' + esc(b.ad) + '</option>').join('') +
                 '</select>' +
               '</div>' +
 
@@ -498,8 +534,8 @@ function vOlustur() {
                 '<select id="c_o">' + ONCELIK.map(o => '<option' + (o === "Normal" ? " selected" : "") + ' value="' + esc(o) + '">' + esc(o) + '</option>').join('') + '</select>' +
               '</div>' +
 
-              '<div class="form-group"><label>' + ic("i-clock") + ' TERMİN TARİHİ</label><input type="date" id="c_v" value="' +
-                iso(new Date(TODAY.getTime() + 10 * 864e5)) + '"></div>' +
+              '<div class="form-group wide"><label>' + ic("i-clock") + ' TERMİN TARİHİ</label><input type="date" id="c_v" value="' +
+                iso(new Date(TODAY.getTime() + 10 * 864e5)) + '" style="max-width:280px"></div>' +
 
               '<!-- Doküman ve Harici Bağlantı Ekleme Paneli -->' +
               '<div class="form-group wide" style="background:#F8FAFC;padding:18px;border:1.5px solid #CBD5E1;border-radius:var(--radius-sm);margin-top:6px">' +
@@ -560,21 +596,21 @@ function vOlustur() {
       '<div>' +
         '<!-- Standart Görev Şablonları -->' +
         '<div class="panel" style="margin-bottom:18px">' +
-          '<div class="panel-header"><span>' + ic("i-wand") + ' Standart Görev Şablonları</span></div>' +
-          '<div class="panel-body">' +
-            '<p style="font-size:12.5px;color:#475569;margin-bottom:14px;font-weight:600">Sık kullanılan iş akışlarını otomatik doldurmak için bir şablon seçin:</p>' +
-            '<div style="display:flex;flex-direction:column;gap:10px">' +
-              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:10px 14px;font-weight:700" data-sablon="envanter">' +
-                ic("i-box") + ' Atölye Envanter Sayımı & Eksik Bildirimi' +
+          '<div class="panel-header"><span>' + ic("i-wand") + ' Standart Şablonlar</span></div>' +
+          '<div class="panel-body" style="padding:16px">' +
+            '<p style="font-size:12px;color:#475569;margin-bottom:12px;font-weight:600">Formu otomatik doldurun:</p>' +
+            '<div style="display:flex;flex-direction:column;gap:8px">' +
+              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:8px 12px;font-weight:700;font-size:11.5px" data-sablon="envanter">' +
+                ic("i-box") + ' Atölye Envanter Sayımı' +
               '</button>' +
-              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:10px 14px;font-weight:700" data-sablon="guvenlik">' +
-                ic("i-alert") + ' Fiziki Güvenlik & Yangın Tedbir Kontrolü' +
+              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:8px 12px;font-weight:700;font-size:11.5px" data-sablon="guvenlik">' +
+                ic("i-alert") + ' Fiziki Güvenlik Kontrolü' +
               '</button>' +
-              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:10px 14px;font-weight:700" data-sablon="sinav">' +
-                ic("i-check") + ' Uygulama Sınavı Hazırlığı & Gözetmen Planı' +
+              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:8px 12px;font-weight:700;font-size:11.5px" data-sablon="sinav">' +
+                ic("i-check") + ' Sınav Hazırlığı & Gözetmen' +
               '</button>' +
-              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:10px 14px;font-weight:700" data-sablon="sezon">' +
-                ic("i-grid") + ' Sezon Açılışı Hazırlık & Müfredat Kontrolü' +
+              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:8px 12px;font-weight:700;font-size:11.5px" data-sablon="sezon">' +
+                ic("i-grid") + ' Sezon Açılışı & Müfredat' +
               '</button>' +
             '</div>' +
           '</div>' +
@@ -582,13 +618,13 @@ function vOlustur() {
 
         '<!-- AI Asistan Hızlı Kısayol -->' +
         '<div class="panel" style="background:linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);border:1px solid #7DD3FC">' +
-          '<div class="panel-body" style="display:flex;flex-direction:column;gap:10px;text-align:center;align-items:center">' +
-            '<div style="width:42px;height:42px;border-radius:50%;background:#0284C7;color:#fff;display:grid;place-items:center;box-shadow:0 4px 10px rgba(2,132,199,0.3)">' +
+          '<div class="panel-body" style="display:flex;flex-direction:column;gap:8px;text-align:center;align-items:center;padding:16px">' +
+            '<div style="width:36px;height:36px;border-radius:50%;background:#0284C7;color:#fff;display:grid;place-items:center;box-shadow:0 3px 8px rgba(2,132,199,0.25)">' +
               ic("i-wand") +
             '</div>' +
-            '<div style="font-weight:800;font-size:15px;color:#0369A1">Serbest Metinden Görev Üretin</div>' +
-            '<p style="font-size:12.5px;color:#0369A1;margin:0">Toplantı notu veya e-posta metnini yapıştırarak görev başlığı, termin, öncelik ve birimi otomatik ayrıştırın.</p>' +
-            '<button class="btn sm" data-go="ayristirici" style="background:#0284C7;margin-top:4px">' + ic("i-wand") + 'Metin Ayrıştırıcıya Git</button>' +
+            '<div style="font-weight:800;font-size:13.5px;color:#0369A1">Serbest Metinden Üretin</div>' +
+            '<p style="font-size:11.5px;color:#0369A1;margin:0;line-height:1.4">Toplantı notu yapıştırarak görevi otomatik oluşturun.</p>' +
+            '<button class="btn sm" data-go="ayristirici" style="background:#0284C7;margin-top:2px;font-size:11.5px">' + ic("i-wand") + 'Metin Ayrıştırıcı' + '</button>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -1657,9 +1693,19 @@ document.addEventListener("click", e => {
       if (oB2) ortakIller.push(oB2);
     }
     
-    if (bid === "__TUM__") {
+    const chosenUlke = (document.getElementById("c_ulke") || {}).value || "";
+    const chosenIl = (document.getElementById("c_il_sec") || {}).value || "";
+
+    if (bid === "__TUM__" || bid === "__TUM_IL__") {
+      let hedefBirimler = BIRIM;
+      if (chosenIl && chosenIl !== "__TUM__") {
+        hedefBirimler = BIRIM.filter(b => b.il === chosenIl);
+      } else if (chosenUlke) {
+        hedefBirimler = BIRIM.filter(b => b.ulke === chosenUlke);
+      }
+
       let say = 0;
-      BIRIM.forEach(bm => {
+      hedefBirimler.forEach(bm => {
         const yeni = {
           id:"GRV-" + (105000 + (TASKS.length + say) * 7), baslik:b.trim(),
           kategori:document.getElementById("c_k").value, birim:bm.id,
@@ -1669,14 +1715,16 @@ document.addEventListener("click", e => {
           oncelik:document.getElementById("c_o").value, yuzde:0, sonGun:0, kaynak:"manuel",
           adimlar:adimlarFor(b.trim()), ekler:JSON.parse(JSON.stringify(eklerList)), yorumlar:[], komisyon:null, altGrup:null,
           olusturma:iso(TODAY), log:[{ tarih:iso(TODAY), kim:S.userId, tip:"olusturma",
-            not:((document.getElementById("c_d") || {}).value || "Tüm 81 il / DENEYAP atölyelerine genel görev atandı.") }]
+            not:((document.getElementById("c_d") || {}).value || "Seçilen kapsama toplu görev atandı.") }]
         };
         TASKS.push(yeni);
-        bildir(yeni.sorumlu, yeni.id, "atama", "Yeni genel görev atandı: " + yeni.baslik);
+        bildir(yeni.sorumlu, yeni.id, "atama", "Yeni görev atandı: " + yeni.baslik);
         say++;
       });
       terminTara();
-      S.view = "gorevler"; toast("Görev tüm 81 il ve DENEYAP atölyelerine oluşturuldu."); render(); return;
+      S.view = "gorevler";
+      const aciklamaMesaj = chosenIl && chosenIl !== "__TUM__" ? chosenIl + " ilindeki " + hedefBirimler.length + " atölyeye görev atandı." : chosenUlke ? chosenUlke + " ülkesindeki " + hedefBirimler.length + " atölyeye görev atandı." : "Tüm atölyelere (" + hedefBirimler.length + " adet) görev atandı.";
+      toast(aciklamaMesaj); render(); return;
     } else {
       const yeni = {
         id:"GRV-" + (105000 + TASKS.length * 7), baslik:b.trim(),
