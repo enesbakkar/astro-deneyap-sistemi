@@ -1361,53 +1361,76 @@ textarea.mono {
 }
 
 /* Kategori & Sekme Hapları */
+p.note, .note {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.65;
+  margin-top: 0;
+  margin-bottom: 22px;
+  background: #F8FAFC;
+  border-left: 4px solid var(--astro-blue);
+  padding: 12px 18px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border-top: 1px solid #E2E8F0;
+  border-right: 1px solid #E2E8F0;
+  border-bottom: 1px solid #E2E8F0;
+}
+
 .tab-pills {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-top: 12px;
+  margin-bottom: 24px;
 }
 
 .tab-pill {
-  background: var(--bg-subtle);
-  border: 1px solid transparent;
+  background: #F1F5F9;
+  border: 1.5px solid #CBD5E1;
   border-radius: var(--radius-full);
-  padding: 6px 15px;
-  font-size: 12.5px;
-  font-weight: 500;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  color: var(--ink-600);
-  transition: all 0.15s;
+  gap: 8px;
+  color: #334155;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .tab-pill:hover {
   background: #E2E8F0;
-  color: var(--ink-900);
+  color: #0F172A;
+  border-color: #94A3B8;
+  transform: translateY(-1px);
 }
 
 .tab-pill.on {
-  background: #FFFFFF;
-  border-color: var(--card-border);
-  color: var(--ink-900);
+  background: #0F172A;
+  border-color: #0F172A;
+  color: #FFFFFF;
   font-weight: 700;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+}
+
+.tab-pill.on svg {
+  color: #FFFFFF;
 }
 
 .tab-pill b {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 10.5px;
   background: #CBD5E1;
-  color: var(--ink-800);
+  color: #0F172A;
   border-radius: var(--radius-full);
-  padding: 1px 6px;
-  font-weight: 600;
+  padding: 2px 7px;
+  font-weight: 700;
 }
 
 .tab-pill.on b {
-  background: var(--astro-gradient-btn);
+  background: #D32F2F;
   color: #FFFFFF;
 }
 
