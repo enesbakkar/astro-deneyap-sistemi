@@ -18,8 +18,10 @@ const fmtLong = s => { const d = D(s); return d.getDate() + " " + AY[d.getMonth(
 const UP = s => String(s).toLocaleUpperCase("tr-TR");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-/* ── Bölge & 81 İl Yapısı ── */
-const BOLGE = ["Marmara","Ege","Akdeniz","İç Anadolu","Karadeniz","Doğu Anadolu","Güneydoğu Anadolu"];
+/* ── Ülke, Bölge, 81 İl ve Uluslararası DENEYAP Atölyeleri Yapısı ── */
+const ULKELER = ["Türkiye","Azerbaycan","Kuzey Kıbrıs (KKTC)","Özbekistan","Katar"];
+
+const BOLGE = ["Marmara","Ege","Akdeniz","İç Anadolu","Karadeniz","Doğu Anadolu","Güneydoğu Anadolu","Yurtdışı Operasyonları"];
 const IL_BOLGE = {
   "Marmara":["Balıkesir","Bilecik","Bursa","Çanakkale","Edirne","İstanbul","Kırklareli","Kocaeli","Sakarya","Tekirdağ","Yalova"],
   "Ege":["Afyonkarahisar","Aydın","Denizli","İzmir","Kütahya","Manisa","Muğla","Uşak"],
@@ -27,30 +29,41 @@ const IL_BOLGE = {
   "İç Anadolu":["Aksaray","Ankara","Çankırı","Eskişehir","Karaman","Kayseri","Kırıkkale","Kırşehir","Konya","Nevşehir","Niğde","Sivas","Yozgat"],
   "Karadeniz":["Amasya","Artvin","Bartın","Bayburt","Bolu","Çorum","Düzce","Giresun","Gümüşhane","Karabük","Kastamonu","Ordu","Rize","Samsun","Sinop","Tokat","Trabzon","Zonguldak"],
   "Doğu Anadolu":["Ağrı","Ardahan","Bingöl","Bitlis","Elazığ","Erzincan","Erzurum","Hakkâri","Iğdır","Kars","Malatya","Muş","Tunceli","Van"],
-  "Güneydoğu Anadolu":["Adıyaman","Batman","Diyarbakır","Gaziantep","Kilis","Mardin","Siirt","Şanlıurfa","Şırnak"]
+  "Güneydoğu Anadolu":["Adıyaman","Batman","Diyarbakır","Gaziantep","Kilis","Mardin","Siirt","Şanlıurfa","Şırnak"],
+  "Yurtdışı Operasyonları":["Bakü","Lefkoşa","Taşkent","Doha"]
 };
 const ILLER = [];
-BOLGE.forEach(bl => IL_BOLGE[bl].forEach(il => ILLER.push({ ad:il, bolge:bl })));
+BOLGE.forEach(bl => IL_BOLGE[bl].forEach(il => ILLER.push({
+  ad: il,
+  bolge: bl,
+  ulke: (bl === "Yurtdışı Operasyonları" ? (il === "Bakü" ? "Azerbaycan" : il === "Lefkoşa" ? "Kuzey Kıbrıs (KKTC)" : il === "Taşkent" ? "Özbekistan" : "Katar") : "Türkiye")
+})));
 ILLER.sort((a, b) => a.ad.localeCompare(b.ad, "tr"));
 const ilBolge = {}; ILLER.forEach(x => ilBolge[x.ad] = x.bolge);
 
 /* ── DENEYAP Atölyeleri (Birimler) ── */
 const BIRIM = [
-  { id:"b1",  il:"Şanlıurfa", ad:"DENEYAP Haliliye",  gecmis:6.0, bolge:"Güneydoğu Anadolu" },
-  { id:"b2",  il:"Van",       ad:"DENEYAP İpekyolu",  gecmis:5.2, bolge:"Doğu Anadolu" },
-  { id:"b3",  il:"Diyarbakır",ad:"DENEYAP Kayapınar", gecmis:3.1, bolge:"Güneydoğu Anadolu" },
-  { id:"b4",  il:"Trabzon",   ad:"DENEYAP Ortahisar", gecmis:1.4, bolge:"Karadeniz" },
-  { id:"b5",  il:"Konya",     ad:"DENEYAP Selçuklu",  gecmis:0.6, bolge:"İç Anadolu" },
-  { id:"b6",  il:"İstanbul",  ad:"DENEYAP Fatih",     gecmis:2.2, bolge:"Marmara" },
-  { id:"b7",  il:"Erzurum",   ad:"DENEYAP Yakutiye",  gecmis:4.4, bolge:"Doğu Anadolu" },
-  { id:"b8",  il:"Gaziantep", ad:"DENEYAP Şahinbey",  gecmis:1.9, bolge:"Güneydoğu Anadolu" },
-  { id:"b9",  il:"Samsun",    ad:"DENEYAP İlkadım",   gecmis:0.9, bolge:"Karadeniz" },
-  { id:"b10", il:"Mardin",    ad:"DENEYAP Artuklu",   gecmis:4.8, bolge:"Güneydoğu Anadolu" },
-  { id:"b11", il:"Ankara",    ad:"DENEYAP Çankaya",   gecmis:1.1, bolge:"İç Anadolu" },
-  { id:"b12", il:"İzmir",     ad:"DENEYAP Bornova",   gecmis:2.6, bolge:"Ege" }
+  { id:"b1",  il:"Şanlıurfa", ad:"DENEYAP Haliliye",  gecmis:6.0, bolge:"Güneydoğu Anadolu", ulke:"Türkiye" },
+  { id:"b2",  il:"Van",       ad:"DENEYAP İpekyolu",  gecmis:5.2, bolge:"Doğu Anadolu", ulke:"Türkiye" },
+  { id:"b3",  il:"Diyarbakır",ad:"DENEYAP Kayapınar", gecmis:3.1, bolge:"Güneydoğu Anadolu", ulke:"Türkiye" },
+  { id:"b4",  il:"Trabzon",   ad:"DENEYAP Ortahisar", gecmis:1.4, bolge:"Karadeniz", ulke:"Türkiye" },
+  { id:"b5",  il:"Konya",     ad:"DENEYAP Selçuklu",  gecmis:0.6, bolge:"İç Anadolu", ulke:"Türkiye" },
+  { id:"b6",  il:"İstanbul",  ad:"DENEYAP Fatih",     gecmis:2.2, bolge:"Marmara", ulke:"Türkiye" },
+  { id:"b7",  il:"Erzurum",   ad:"DENEYAP Yakutiye",  gecmis:4.4, bolge:"Doğu Anadolu", ulke:"Türkiye" },
+  { id:"b8",  il:"Gaziantep", ad:"DENEYAP Şahinbey",  gecmis:1.9, bolge:"Güneydoğu Anadolu", ulke:"Türkiye" },
+  { id:"b9",  il:"Samsun",    ad:"DENEYAP İlkadım",   gecmis:0.9, bolge:"Karadeniz", ulke:"Türkiye" },
+  { id:"b10", il:"Mardin",    ad:"DENEYAP Artuklu",   gecmis:4.8, bolge:"Güneydoğu Anadolu", ulke:"Türkiye" },
+  { id:"b11", il:"Ankara",    ad:"DENEYAP Çankaya",   gecmis:1.1, bolge:"İç Anadolu", ulke:"Türkiye" },
+  { id:"b12", il:"İzmir",     ad:"DENEYAP Bornova",   gecmis:2.6, bolge:"Ege", ulke:"Türkiye" },
+  { id:"b13", il:"Bursa",     ad:"DENEYAP Nilüfer",   gecmis:1.8, bolge:"Marmara", ulke:"Türkiye" },
+  { id:"b14", il:"Antalya",   ad:"DENEYAP Muratpaşa", gecmis:2.0, bolge:"Akdeniz", ulke:"Türkiye" },
+  { id:"b15", il:"Adana",     ad:"DENEYAP Seyhan",    gecmis:3.0, bolge:"Akdeniz", ulke:"Türkiye" },
+  { id:"b16", il:"Bakü",      ad:"DENEYAP Bakü",      gecmis:1.5, bolge:"Yurtdışı Operasyonları", ulke:"Azerbaycan" },
+  { id:"b17", il:"Lefkoşa",   ad:"DENEYAP Lefkoşa",   gecmis:2.1, bolge:"Yurtdışı Operasyonları", ulke:"Kuzey Kıbrıs (KKTC)" },
+  { id:"b18", il:"Taşkent",   ad:"DENEYAP Taşkent",   gecmis:2.5, bolge:"Yurtdışı Operasyonları", ulke:"Özbekistan" }
 ];
 const bIdx = {}; BIRIM.forEach(b => bIdx[b.id] = b);
-const MERKEZ_BIRIM = { id:"b0", il:"Merkez", ad:"Genel Merkez Operasyon", gecmis:0.8, bolge:"İç Anadolu" };
+const MERKEZ_BIRIM = { id:"b0", il:"Merkez", ad:"Genel Merkez Operasyon", gecmis:0.8, bolge:"İç Anadolu", ulke:"Türkiye" };
 bIdx["b0"] = MERKEZ_BIRIM;
 const bLabel = id => { const b = bIdx[id]; return b ? b.il + " / " + b.ad : "—"; };
 const bBolge = bid => (bIdx[bid] || MERKEZ_BIRIM).bolge;
@@ -714,7 +727,7 @@ let S = {
   userId: null,
   view: "pano",
   gorevId: null,
-  filt: { bolge:"", il:"", birim:"", komisyon:"", koord:"", durum:"", oncelik:"", kat:"", q:"" },
+  filt: { ulke:"", bolge:"", il:"", birim:"", komisyon:"", koord:"", durum:"", oncelik:"", kat:"", q:"" },
   sekme: "yuksek",
   sor: false,
   sorGecmis: [],

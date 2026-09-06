@@ -74,8 +74,8 @@ function terminCell(t) {
   const kalan = dayDiff(t.termin, iso(TODAY));
   let ek = '';
   if (t.durum !== "Tamamlandı") {
-    if (kalan < 0) ek = '<span class="soon-pill danger">🔥 ' + (-kalan) + ' gün geçti</span>';
-    else if (kalan <= 3) ek = '<span class="soon-pill">⚠️ ' + kalan + ' gün kaldı</span>';
+    if (kalan < 0) ek = '<span class="soon-pill danger">[GECİKTİ] ' + (-kalan) + ' gün geçti</span>';
+    else if (kalan <= 3) ek = '<span class="soon-pill">[KRİTİK] ' + kalan + ' gün kaldı</span>';
   }
   return '<td class="tabular-date">' + fmt(t.termin) + ek + '</td>';
 }
@@ -85,14 +85,14 @@ function taskRows(list, opts) {
   if (!list.length) return '<tr><td colspan="9"><div style="padding:40px 20px;text-align:center;color:var(--ink-400)"><b>Kayıt bulunmuyor</b><p style="margin-top:4px">Filtreleri gevşetip yeniden deneyin.</p></div></td></tr>';
   return list.map(t => {
     const u = t.sorumlu ? uIdx[t.sorumlu].ad : "Atanmamış";
-    let yer = t.komisyon ? (kIdx[t.komisyon] || {}).ad : (t.birim === "__TUM__" ? "🌐 81 İl Genel" : (bIdx[t.birim] || {}).il || "Genel");
+    let yer = t.komisyon ? (kIdx[t.komisyon] || {}).ad : (t.birim === "__TUM__" ? "Tüm İller / Genel" : (bIdx[t.birim] || {}).il || "Genel");
     if (t.ortakGorev && t.ortakIller && t.ortakIller.length > 1) {
       const ilAdlari = t.ortakIller.map(bid => (bIdx[bid] || {}).il || bid.replace("il_", "")).join(" + ");
-      yer = "🤝 Ortak (" + ilAdlari + ")";
+      yer = "Ortak Görev (" + ilAdlari + ")";
     }
     const koordTag = t.koordinatorluk ? ' · <span style="color:var(--astro-blue);font-weight:600">' + esc(t.koordinatorluk) + '</span>' : '';
-    const ortakTag = t.ortakGorev ? ' · <span style="color:#4F46E5;font-weight:600">🤝 Ortak Görev</span>' : '';
-    const tumTag = t.birim === "__TUM__" ? ' · <span style="color:#16A34A;font-weight:600">🌐 81 İl Genel</span>' : '';
+    const ortakTag = t.ortakGorev ? ' · <span style="color:#4F46E5;font-weight:600">Ortak Görev</span>' : '';
+    const tumTag = t.birim === "__TUM__" ? ' · <span style="color:#16A34A;font-weight:600">Tüm İller / Genel</span>' : '';
 
     return '<tr class="clickable" data-git="' + t.id + '">' +
       '<td class="task-title">' + esc(t.baslik) +
@@ -193,6 +193,7 @@ function vPano() {
 function filtrele(list) {
   const f = S.filt;
   return list.filter(t =>
+    (!f.ulke || (bIdx[t.birim] || {}).ulke === f.ulke) &&
     (!f.bolge || bBolge(t.birim) === f.bolge) &&
     (!f.il || (bIdx[t.birim] || {}).il === f.il || (t.ortakIller && t.ortakIller.some(bid => (bIdx[bid] || {}).il === f.il))) &&
     (!f.birim || t.birim === f.birim || (t.ortakIller && t.ortakIller.includes(f.birim))) &&
@@ -205,7 +206,7 @@ function filtrele(list) {
   );
 }
 
-const gelismisSayac = () => ["bolge","il","birim","komisyon","koord"].filter(k => S.filt[k]).length;
+const gelismisSayac = () => ["ulke","bolge","il","birim","komisyon","koord"].filter(k => S.filt[k]).length;
 
 function katSerit(kapsam) {
   const acik = kapsam.filter(t => t.durum !== "Tamamlandı");
@@ -227,7 +228,7 @@ function filtreBar(opts) {
   const ilListe = f.bolge ? ILLER.filter(x => x.bolge === f.bolge) : ILLER;
   const ilVar = ilListe.filter(x => atolyeli.includes(x.ad));
   const ilYok = ilListe.filter(x => !atolyeli.includes(x.ad));
-  const birimListe = BIRIM.filter(b => (!f.bolge || b.bolge === f.bolge) && (!f.il || b.il === f.il));
+  const birimListe = BIRIM.filter(b => (!f.ulke || b.ulke === f.ulke) && (!f.bolge || b.bolge === f.bolge) && (!f.il || b.il === f.il));
 
   return '<div class="filter-bar">' +
     '<div class="form-group"><label>DURUM</label><select data-f="durum">' +
@@ -241,8 +242,9 @@ function filtreBar(opts) {
     (opts.aktar === false ? '' : '<button class="btn ghost sm" data-aktar="gorev">' + ic("i-down") + 'Excel / PDF</button>') +
     (S.gelismis || gelismisSayac() ?
       '<div style="display:flex;width:100%;gap:10px;flex-wrap:wrap;padding:12px 14px;background:#FFFFFF;border:1px dashed var(--card-border);border-radius:var(--radius-sm);margin-top:6px">' +
+        '<div class="form-group" style="min-width:140px"><label>ÜLKE</label><select data-f="ulke">' + opt(ULKELER, f.ulke) + '</select></div>' +
         '<div class="form-group"><label>BÖLGE</label><select data-f="bolge">' + opt(BOLGE, f.bolge) + '</select></div>' +
-        '<div class="form-group" style="min-width:160px"><label>İL (81 İL)</label><select data-f="il">' +
+        '<div class="form-group" style="min-width:160px"><label>İL (81 İL & ULUSLARARASI)</label><select data-f="il">' +
           '<option value="">Tümü</option>' +
           (ilVar.length ? '<optgroup label="Atölyesi Olan İller">' + ilVar.map(x => sec(f.il, x.ad)).join('') + '</optgroup>' : '') +
           (ilYok.length ? '<optgroup label="Planlanan İller">' + ilYok.map(x => sec(f.il, x.ad)).join('') + '</optgroup>' : '') +
@@ -434,62 +436,106 @@ function vGorev() {
 
 /* ── 7. YENİ GÖREV OLUŞTURMA ── */
 function vOlustur() {
-  const atolyeli = atolyeliIller();
-  const digerIller = ILLER.filter(x => !atolyeli.includes(x.ad));
-
   return page("Operasyon", "Yeni Görev Oluştur",
     '<button class="btn ghost" data-go="ayristirici">' + ic("i-wand") + 'Metinden Otomatik Ayrıştır</button>',
     ipucu("Görev oluşturulduğunda ilgili il sorumlularına, koordinatörlüklere ve operasyon ekibine anlık bildirim iletilir.") +
-    '<div class="panel" style="max-width:880px"><div class="panel-body"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">' +
-      '<div class="form-group wide"><label>GÖREV BAŞLIĞI</label><input type="text" id="c_t" placeholder="Örn. Atölye envanter sayımı ve eksik malzeme bildirimi"></div>' +
-      '<div class="form-group wide"><label>AÇIKLAMA</label><textarea id="c_d" placeholder="Görev talimatı ve beklenen çıktılar..."></textarea></div>' +
-      
-      '<div class="form-group"><label>HEDEF İL / ATÖLYE SEÇİMİ</label><select id="c_b">' +
-        '<option value="__TUM__">🌐 TÜM İLLER (81 İL / TÜM DENEYAP ATÖLYELERİ)</option>' +
-        '<optgroup label="Atölyesi Olan İller">' +
-          BIRIM.map(b => '<option value="' + b.id + '">' + b.il + " / " + b.ad + '</option>').join('') +
-        '</optgroup>' +
-        '<optgroup label="Diğer İller (81 İl)">' +
-          digerIller.map(x => '<option value="il_' + x.ad + '">' + x.ad + ' İl Koordinasyon</option>').join('') +
-        '</optgroup>' +
-      '</select></div>' +
+    '<div class="panel" style="max-width:920px"><div class="panel-body">' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px">' +
+        '<div class="form-group wide"><label>GÖREV BAŞLIĞI</label><input type="text" id="c_t" placeholder="Örn. Atölye envanter sayımı ve eksik malzeme bildirimi"></div>' +
+        '<div class="form-group wide"><label>AÇIKLAMA VEYA GÖREV TALİMATI</label><textarea id="c_d" placeholder="Görev kapsamı, detaylı uygulama talimatları ve beklenen çıktılar..."></textarea></div>' +
+        
+        '<div class="form-group"><label>ÜLKE SEÇİMİ</label>' +
+          '<select id="c_ulke" onchange="const u=this.value; const selIl=document.getElementById(\'c_il_sec\'); Array.from(selIl.options).forEach(o=>{ if(o.value===\'__TUM__\') return; o.style.display=(!u||!o.dataset.ulke||o.dataset.ulke===u)?\'block\':\'none\'; }); selIl.value=\'__TUM__\';">' +
+            '<option value="">Tüm Ülkeler (Uluslararası Kapsam)</option>' +
+            ULKELER.map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('') +
+          '</select>' +
+        '</div>' +
 
-      '<div class="form-group"><label>KOORDİNATÖRLÜK</label><select id="c_koord">' +
-        '<option value="">— Genel Operasyon —</option>' +
-        KOORDINATORLUK.map(k => '<option value="' + esc(k) + '">' + esc(k) + '</option>').join('') +
-      '</select></div>' +
+        '<div class="form-group"><label>İNL KAPSAMI SEÇİMİ</label>' +
+          '<select id="c_il_sec" onchange="const il=this.value; const selB=document.getElementById(\'c_b\'); Array.from(selB.options).forEach(o=>{ if(o.value===\'__TUM__\') return; o.style.display=(!il||!o.dataset.il||o.dataset.il===il)?\'block\':\'none\'; }); selB.value=\'__TUM__\';">' +
+            '<option value="__TUM__" data-ulke="">[Tüm İller / Genel Kapsam]</option>' +
+            '<optgroup label="Türkiye (81 İl)">' +
+              ILLER.filter(x => x.ulke === "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="Türkiye">' + esc(x.ad) + '</option>').join('') +
+            '</optgroup>' +
+            '<optgroup label="Uluslararası İller / Merkezler">' +
+              ILLER.filter(x => x.ulke !== "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="' + esc(x.ulke) + '">' + esc(x.ad) + ' (' + esc(x.ulke) + ')</option>').join('') +
+            '</optgroup>' +
+          '</select>' +
+        '</div>' +
 
-      '<div class="form-group"><label>KATEGORİ</label><select id="c_k">' + KAT.map(k => '<option>' + k + '</option>').join('') + '</select></div>' +
-      '<div class="form-group"><label>ÖNCELİK</label><select id="c_o">' + ONCELIK.map(o =>
-        '<option' + (o === "Normal" ? " selected" : "") + '>' + o + '</option>').join('') + '</select></div>' +
-      '<div class="form-group"><label>TERMİN TARİHİ</label><input type="date" id="c_v" value="' +
-        iso(new Date(TODAY.getTime() + 10 * 864e5)) + '"></div>' +
+        '<div class="form-group"><label>DENEYAP ATÖLYESİ (BİRİM)</label>' +
+          '<select id="c_b">' +
+            '<option value="__TUM__" data-il="">[Tüm Atölyelere Atansın]</option>' +
+            BIRIM.map(b => '<option value="' + b.id + '" data-il="' + esc(b.il) + '">' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
+          '</select>' +
+        '</div>' +
 
-      '<div class="form-group wide" style="background:#F8FAFC;padding:14px;border:1px solid var(--card-border);border-radius:var(--radius-sm);margin-top:4px">' +
-        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;color:var(--ink-900);font-size:13px">' +
-          '<input type="checkbox" id="c_ortak_check" style="width:16px;height:16px" onchange="document.getElementById(\'ortak_alan\').style.display=this.checked?\'block\':\'none\'">' +
-          '🤝 Ortak Görev Tanımla (Çoklu İl / Atölye İş Birliği)' +
-        '</label>' +
-        '<div id="ortak_alan" style="display:none;margin-top:10px">' +
-          '<p style="font-size:12px;color:var(--ink-500);margin-bottom:10px">Bu görevi birlikte tamamlaması gereken 2. veya 3. ortak il / atölyeyi seçin:</p>' +
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
-            '<div><label style="font-size:11px;color:var(--ink-600)">2. ORTAK ATÖLYE / İL</label><select id="c_ortak_b1">' +
-              '<option value="">— Ortak Atölye Seçin —</option>' +
-              BIRIM.map(b => '<option value="' + b.id + '">' + b.il + " / " + b.ad + '</option>').join('') +
-            '</select></div>' +
-            '<div><label style="font-size:11px;color:var(--ink-600)">3. ORTAK ATÖLYE / İL (OPSİYONEL)</label><select id="c_ortak_b2">' +
-              '<option value="">— Yok —</option>' +
-              BIRIM.map(b => '<option value="' + b.id + '">' + b.il + " / " + b.ad + '</option>').join('') +
-            '</select></div>' +
+        '<div class="form-group"><label>KOORDİNATÖRLÜK</label>' +
+          '<select id="c_koord">' +
+            '<option value="">— Genel Operasyon —</option>' +
+            KOORDINATORLUK.map(k => '<option value="' + esc(k) + '">' + esc(k) + '</option>').join('') +
+          '</select>' +
+        '</div>' +
+
+        '<div class="form-group"><label>KATEGORİ</label><select id="c_k">' + KAT.map(k => '<option>' + k + '</option>').join('') + '</select></div>' +
+        '<div class="form-group"><label>ÖNCELİK SEVİYESİ</label><select id="c_o">' + ONCELIK.map(o =>
+          '<option' + (o === "Normal" ? " selected" : "") + '>' + o + '</option>').join('') + '</select></div>' +
+        '<div class="form-group"><label>TERMİN TARİHİ</label><input type="date" id="c_v" value="' +
+          iso(new Date(TODAY.getTime() + 10 * 864e5)) + '"></div>' +
+
+        '<!-- Doküman ve Harici Bağlantı Ekleme Paneli -->' +
+        '<div class="form-group wide" style="background:#F8FAFC;padding:14px;border:1px solid var(--card-border);border-radius:var(--radius-sm);margin-top:4px">' +
+          '<label style="font-weight:700;color:var(--ink-900);font-size:13px;display:block;margin-bottom:8px">' +
+            'DOKÜMAN & REHBER BAĞLANTISI EKLE (OPSİYONEL)' +
+          '</label>' +
+          '<div style="display:grid;grid-template-columns:1.2fr 130px 1.5fr;gap:10px">' +
+            '<div>' +
+              '<label style="font-size:11px;color:var(--ink-600)">DOKÜMAN / BAĞLANTI BAŞLIĞI</label>' +
+              '<input type="text" id="c_ek_ad" placeholder="Örn. Sınav Uygulama Rehberi PDF">' +
+            '</div>' +
+            '<div>' +
+              '<label style="font-size:11px;color:var(--ink-600)">FORMAT / TÜR</label>' +
+              '<select id="c_ek_tur">' +
+                '<option value="pdf">PDF Dokümanı</option>' +
+                '<option value="gorsel">Görsel (PNG/JPG)</option>' +
+                '<option value="link">Harici Web URL</option>' +
+                '<option value="tablo">Excel / Tablo</option>' +
+              '</select>' +
+            '</div>' +
+            '<div>' +
+              '<label style="font-size:11px;color:var(--ink-600)">DOSYA YOLU VEYA HARİCİ URL LINK</label>' +
+              '<input type="text" id="c_ek_url" placeholder="https://deneyapturkiye.org/docs/rehber.pdf">' +
+            '</div>' +
           '</div>' +
         '</div>' +
-      '</div>' +
 
-      '<div class="form-group wide" style="flex-direction:row;gap:10px;margin-top:6px">' +
-        '<button class="btn" data-create="1">' + ic("i-plus") + 'Görevi Oluştur ve Ata</button>' +
-        '<button class="btn ghost" data-go="gorevler">İptal</button>' +
+        '<!-- Ortak Görev Bölümü -->' +
+        '<div class="form-group wide" style="background:#F8FAFC;padding:14px;border:1px solid var(--card-border);border-radius:var(--radius-sm);margin-top:4px">' +
+          '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;color:var(--ink-900);font-size:13px">' +
+            '<input type="checkbox" id="c_ortak_check" style="width:16px;height:16px" onchange="document.getElementById(\'ortak_alan\').style.display=this.checked?\'block\':\'none\'">' +
+            'Ortak Görev Tanımla (Çoklu İl / Atölye Sorumluluğu)' +
+          '</label>' +
+          '<div id="ortak_alan" style="display:none;margin-top:10px">' +
+            '<p style="font-size:12px;color:var(--ink-500);margin-bottom:10px">Bu görevi birlikte tamamlayacak 2. ve 3. DENEYAP Atölyesini seçin:</p>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+              '<div><label style="font-size:11px;color:var(--ink-600)">2. ORTAK ATÖLYE</label><select id="c_ortak_b1">' +
+                '<option value="">— Ortak Atölye Seçin —</option>' +
+                BIRIM.map(b => '<option value="' + b.id + '">' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
+              '</select></div>' +
+              '<div><label style="font-size:11px;color:var(--ink-600)">3. ORTAK ATÖLYE (OPSİYONEL)</label><select id="c_ortak_b2">' +
+                '<option value="">— Yok —</option>' +
+                BIRIM.map(b => '<option value="' + b.id + '">' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
+              '</select></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="form-group wide" style="flex-direction:row;gap:10px;margin-top:6px">' +
+          '<button class="btn" data-create="1">' + ic("i-plus") + 'Görevi Kaydet ve Yayınla</button>' +
+          '<button class="btn ghost" data-go="gorevler">İptal</button>' +
+        '</div>' +
       '</div>' +
-    '</div></div></div>');
+    '</div></div>');
 }
 
 /* ── 8. YAPAY ZEKÂ GÖREV AYRIŞTIRICI ── */
@@ -1205,14 +1251,27 @@ function ekPanel(t) {
   const yaz = yazabilir() && (rolum() === "merkez" || t.sorumlu === S.userId);
   const ek = t.ekler || [];
   return '<div class="panel" style="margin-top:16px"><div class="panel-header"><span>' + ic("i-file") +
-    ' Kanıt & Belge Dosyaları</span><span class="badge-count">' + ek.length + ' dosya</span></div><div class="panel-body">' +
+    ' Kanıt, Doküman ve Harici Bağlantılar</span><span class="badge-count">' + ek.length + ' kayıt</span></div><div class="panel-body">' +
     (ek.length ? '<div style="display:flex;flex-direction:column;gap:8px">' +
-      ek.map(x => '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg-subtle);border-radius:var(--radius-sm)">' +
-        '<div style="font-size:12.5px;font-weight:600">📄 ' + esc(x.ad) + '</div>' +
-        (yaz ? '<button class="btn ghost sm" data-eksil="' + t.id + "|" + x.id + '">Kaldır</button>' : '') +
-      '</div>').join('') + '</div>' : '<div style="color:var(--ink-400);font-size:12px">Henüz belge eklenmedi.</div>') +
-    (yaz ? '<div style="margin-top:12px"><label class="btn ghost sm" style="cursor:pointer">' + ic("i-plus") + 'Dosya / Belge Seç' +
-      '<input type="file" data-ekyukle="' + t.id + '" multiple style="display:none"></label></div>' : '') +
+      ek.map(x => {
+        const isUrl = x.url || x.tur === "link";
+        const iconLabel = (x.tur && x.tur.includes("pdf")) || (x.ad && x.ad.toLowerCase().endsWith(".pdf")) ? "[PDF Dokümanı]" : isUrl ? "[Harici Bağlantı]" : "[Görsel / Dosya]";
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-subtle);border-radius:var(--radius-sm);border:1px solid var(--card-border)">' +
+          '<div>' +
+            '<div style="font-size:13px;font-weight:600;color:var(--ink-900)">' + iconLabel + ' ' + esc(x.ad) + '</div>' +
+            (x.url ? '<div style="font-size:11px;color:var(--astro-blue);margin-top:2px;font-family:var(--font-mono)"><a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.url) + ' ↗</a></div>' : '') +
+          '</div>' +
+          '<div style="display:flex;gap:6px">' +
+            (x.url ? '<a href="' + esc(x.url) + '" target="_blank" class="btn ghost sm">Bağlantıyı Aç ↗</a>' : '') +
+            (yaz ? '<button class="btn ghost sm" data-eksil="' + t.id + "|" + x.id + '">Kaldır</button>' : '') +
+          '</div>' +
+        '</div>';
+      }).join('') + '</div>' : '<div style="color:var(--ink-400);font-size:12px">Henüz doküman veya bağlantı eklenmedi.</div>') +
+    (yaz ? '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--card-border);display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+      '<label class="btn ghost sm" style="cursor:pointer">' + ic("i-plus") + 'Dosya Yükle' +
+        '<input type="file" data-ekyukle="' + t.id + '" multiple style="display:none"></label>' +
+      '<button class="btn ghost sm" onclick="const u=prompt(\'Harici Doküman veya Web Bağlantı URLsi girin:\'); if(u){ window.addUrlEk&&window.addUrlEk(\'' + t.id + '\', u); }">URL / Bağlantı Ekle</button>' +
+    '</div>' : '') +
     '</div></div>';
 }
 
@@ -1470,7 +1529,22 @@ document.addEventListener("click", e => {
     const isOrtak = !!(document.getElementById("c_ortak_check") || {}).checked;
     const oB1 = isOrtak ? (document.getElementById("c_ortak_b1") || {}).value : "";
     const oB2 = isOrtak ? (document.getElementById("c_ortak_b2") || {}).value : "";
-    
+
+    const ekAd = (document.getElementById("c_ek_ad") || {}).value || "";
+    const ekTur = (document.getElementById("c_ek_tur") || {}).value || "pdf";
+    const ekUrl = (document.getElementById("c_ek_url") || {}).value || "";
+    const eklerList = [];
+    if (ekAd.trim() || ekUrl.trim()) {
+      eklerList.push({
+        id: "e" + (++EK_SEQ),
+        kim: S.userId,
+        ad: ekAd.trim() || "Görev Ek Dokümanı",
+        tur: ekTur === "pdf" ? "application/pdf" : ekTur === "gorsel" ? "image/png" : "link",
+        url: ekUrl.trim(),
+        tarih: iso(TODAY)
+      });
+    }
+
     let ortakIller = [];
     if (isOrtak) {
       if (bid && bid !== "__TUM__") ortakIller.push(bid);
@@ -1488,7 +1562,7 @@ document.addEventListener("click", e => {
           sorumlu:uOf(bm.id) ? uOf(bm.id).id : null, olusturan:S.userId,
           termin:document.getElementById("c_v").value, durum:"Bekliyor",
           oncelik:document.getElementById("c_o").value, yuzde:0, sonGun:0, kaynak:"manuel",
-          adimlar:adimlarFor(b.trim()), ekler:[], yorumlar:[], komisyon:null, altGrup:null,
+          adimlar:adimlarFor(b.trim()), ekler:JSON.parse(JSON.stringify(eklerList)), yorumlar:[], komisyon:null, altGrup:null,
           olusturma:iso(TODAY), log:[{ tarih:iso(TODAY), kim:S.userId, tip:"olusturma",
             not:((document.getElementById("c_d") || {}).value || "Tüm 81 il / DENEYAP atölyelerine genel görev atandı.") }]
         };
@@ -1506,7 +1580,7 @@ document.addEventListener("click", e => {
         sorumlu:uOf(bid) ? uOf(bid).id : null, olusturan:S.userId,
         termin:document.getElementById("c_v").value, durum:"Bekliyor",
         oncelik:document.getElementById("c_o").value, yuzde:0, sonGun:0, kaynak:"manuel",
-        adimlar:adimlarFor(b.trim()), ekler:[], yorumlar:[], komisyon:null, altGrup:null,
+        adimlar:adimlarFor(b.trim()), ekler:eklerList, yorumlar:[], komisyon:null, altGrup:null,
         olusturma:iso(TODAY), log:[{ tarih:iso(TODAY), kim:S.userId, tip:"olusturma",
           not:((document.getElementById("c_d") || {}).value || "Görev oluşturuldu ve atandı.") }]
       };
