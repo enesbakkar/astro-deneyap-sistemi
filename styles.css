@@ -324,16 +324,17 @@ a:hover {
 }
 
 /* ── Sol Menü (Sidebar) ── */
+/* ── Sol Menü (Sidebar - T3 Vakfı Standart Dark Navy) ── */
 aside {
-  background: #FFFFFF;
-  border-right: 1px solid #E2E8F0;
+  background: #1C2033;
+  border-right: 1px solid #252B40;
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   height: 100vh;
   z-index: 30;
-  box-shadow: 2px 0 12px rgba(15, 23, 42, 0.03);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
 }
 
 aside::before {
@@ -343,17 +344,17 @@ aside::before {
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--astro-gradient-h);
+  background: #D32F2F;
   z-index: 31;
 }
 
 .aside-brand {
   padding: 22px 20px 18px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid #252B40;
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #FFFFFF;
+  background: #1C2033;
   position: relative;
 }
 
@@ -361,7 +362,7 @@ aside::before {
   height: 38px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 4px 10px rgba(247, 127, 0, 0.25));
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
   transition: transform 0.2s ease;
 }
 
@@ -377,11 +378,9 @@ aside::before {
 .brand-name {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 17px;
-  letter-spacing: 0.06em;
-  background: var(--astro-gradient-h);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 16.5px;
+  letter-spacing: 0.04em;
+  color: #FFFFFF;
   line-height: 1.1;
 }
 
@@ -389,8 +388,8 @@ aside::before {
   font-family: var(--font-body);
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  color: #64748B;
+  letter-spacing: 0.12em;
+  color: #94A3B8;
   margin-top: 3px;
   text-transform: uppercase;
 }
@@ -402,14 +401,14 @@ nav {
   padding: 14px 10px;
   flex: 1;
   overflow-y: auto;
-  gap: 2px;
+  gap: 3px;
 }
 
 nav::-webkit-scrollbar {
   width: 4px;
 }
 nav::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #353C58;
   border-radius: 4px;
 }
 
@@ -418,7 +417,7 @@ nav .nav-group {
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.14em;
-  color: #94A3B8;
+  color: #64748B;
   padding: 16px 12px 6px;
   text-transform: uppercase;
 }
@@ -431,9 +430,9 @@ nav button {
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   text-align: left;
-  padding: 9.5px 12px;
-  color: #475569;
-  font-size: 13px;
+  padding: 10px 14px;
+  color: #CBD5E1;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -444,32 +443,32 @@ nav button {
 }
 
 nav button svg {
-  color: #64748B;
+  color: #94A3B8;
   transition: color 0.15s ease;
 }
 
 nav button:hover {
-  color: #0F172A;
-  background: #F1F5F9;
-  border-color: #E2E8F0;
+  color: #FFFFFF;
+  background: #252C40;
+  border-color: #2D344B;
   transform: translateX(2px);
 }
 
 nav button:hover svg {
-  color: var(--astro-orange);
+  color: #FFFFFF;
 }
 
 nav button.on {
-  color: #0F172A;
-  background: linear-gradient(90deg, rgba(230, 57, 70, 0.08) 0%, rgba(247, 127, 0, 0.06) 60%, rgba(0, 180, 216, 0.04) 100%);
-  border: 1px solid rgba(247, 127, 0, 0.25);
+  color: #FFFFFF;
+  background: #272D43;
+  border: 1px solid #353C58;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(247, 127, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 nav button.on svg {
-  color: var(--astro-red);
-  filter: drop-shadow(0 2px 4px rgba(230, 57, 70, 0.3));
+  color: #FFFFFF;
+  filter: drop-shadow(0 2px 4px rgba(211, 47, 47, 0.4));
 }
 
 nav button.on::before {
@@ -478,10 +477,10 @@ nav button.on::before {
   left: 0;
   top: 4px;
   bottom: 4px;
-  width: 3.5px;
+  width: 4px;
   border-radius: 0 4px 4px 0;
-  background: var(--astro-gradient);
-  box-shadow: 0 0 8px rgba(247, 127, 0, 0.4);
+  background: #D32F2F;
+  box-shadow: 0 0 8px rgba(211, 47, 47, 0.5);
 }
 
 nav .badge {
@@ -489,19 +488,19 @@ nav .badge {
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
-  background: var(--astro-red);
+  background: #D32F2F;
   color: #FFFFFF;
   border-radius: var(--radius-full);
   padding: 1px 7px;
   line-height: 14px;
-  box-shadow: 0 2px 6px rgba(230, 57, 70, 0.3);
+  box-shadow: 0 2px 6px rgba(211, 47, 47, 0.4);
 }
 
 /* Profil Alanı (Sidebar Bottom) */
 .user-profile {
   padding: 14px 14px 16px;
-  border-top: 1px solid #E2E8F0;
-  background: #F8FAFC;
+  border-top: 1px solid #252B40;
+  background: #151928;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -511,14 +510,14 @@ nav .badge {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--astro-gradient);
+  background: #D32F2F;
   color: #FFFFFF;
   display: grid;
   place-items: center;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 13px;
-  box-shadow: 0 2px 8px rgba(230, 57, 70, 0.3);
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.35);
   flex-shrink: 0;
 }
 
@@ -530,8 +529,8 @@ nav .badge {
 .user-name {
   display: block;
   font-weight: 700;
-  font-size: 12.5px;
-  color: #0F172A;
+  font-size: 13px;
+  color: #FFFFFF;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -540,9 +539,9 @@ nav .badge {
 
 .user-role {
   display: block;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 600;
-  color: #64748B;
+  color: #94A3B8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -552,7 +551,7 @@ nav .badge {
 .logout-btn {
   background: transparent;
   border: 0;
-  color: #64748B;
+  color: #94A3B8;
   cursor: pointer;
   padding: 6px;
   line-height: 0;
@@ -560,8 +559,8 @@ nav .badge {
   transition: all 0.15s;
 }
 .logout-btn:hover {
-  color: var(--astro-red);
-  background: var(--astro-red-light);
+  color: #FFFFFF;
+  background: rgba(211, 47, 47, 0.25);
 }
 
 /* ── Sağ Ana Alan ── */
@@ -708,6 +707,37 @@ main {
   flex-wrap: wrap;
 }
 
+/* ── T3 Vakfı Red Welcome Banner (Bursiyer & KYS Standart) ── */
+.t3-welcome-banner {
+  background: #D32F2F;
+  background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+  color: #FFFFFF;
+  padding: 22px 28px;
+  border-radius: var(--radius-md);
+  margin-bottom: 22px;
+  box-shadow: 0 4px 16px rgba(211, 47, 47, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.t3-welcome-banner h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #FFFFFF;
+}
+
+.t3-welcome-banner p {
+  font-size: 13px;
+  opacity: 0.92;
+  margin-top: 4px;
+  font-weight: 500;
+  color: #FFFFFF;
+}
+
 /* ── Modern Butonlar ── */
 .btn {
   font-family: var(--font-body);
@@ -716,20 +746,20 @@ main {
   padding: 9px 18px;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
-  background: var(--astro-gradient-btn);
+  background: #D32F2F;
   color: #FFFFFF;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(230, 57, 70, 0.25);
+  box-shadow: 0 2px 6px rgba(211, 47, 47, 0.25);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn:hover {
-  background: var(--astro-gradient-btn-hover);
-  box-shadow: 0 4px 14px rgba(230, 57, 70, 0.35);
+  background: #B71C1C;
+  box-shadow: 0 4px 14px rgba(211, 47, 47, 0.35);
   transform: translateY(-1px);
 }
 

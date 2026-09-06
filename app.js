@@ -159,9 +159,18 @@ function vPano() {
     return { ad:b.il, pc:g.length ? Math.round(c / g.length * 100) : 0, n:g.length };
   }).filter(x => x.n).sort((a, b) => a.pc - b.pc).slice(0, 7);
 
+  const u = me();
+  const uAd = u ? u.ad.split(' ')[0] : "Kullanıcı";
+
   return page("Operasyon Yönetimi", "Operasyon Panosu",
     (rolum() === "merkez" ? '<button class="btn" data-go="olustur">' + ic("i-plus") + 'Görev oluştur</button>' : '') +
     '<button class="btn ghost" data-sor="1">' + ic("i-ask") + 'Yapay Zekâya Sor</button>',
+    '<div class="t3-welcome-banner">' +
+      '<div>' +
+        '<h2>Merhaba, ' + esc(uAd) + '</h2>' +
+        '<p>' + fmtLong(iso(TODAY)) + ' · DENEYAP Operasyon & Görev Takip Panosu</p>' +
+      '</div>' +
+    '</div>' +
     '<div class="kpi-grid">' +
       kpi(hepsi.length, "Toplam Görev") +
       kpi(list.length, "Açık Görev", "var(--astro-blue)") +
