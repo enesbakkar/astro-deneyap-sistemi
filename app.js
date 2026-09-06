@@ -103,7 +103,7 @@ function taskRows(list, opts) {
       '<td class="tabular-date" style="font-size:12px">' + esc(yer) + '</td>' +
       terminCell(t) +
       (opts.oncelik === false ? '' : '<td>' + prPill(t.oncelik) + '</td>') +
-      '<td>' + riskCell(t) + '</td>' +
+      (opts.risk === false || rolum() === "egitmen" ? '' : '<td>' + riskCell(t) + '</td>') +
       '<td>' + stPill(t.durum) + '</td></tr>';
   }).join('');
 }
@@ -388,7 +388,7 @@ function vBenim() {
       : '<div class="panel"><div class="panel-body" style="text-align:center;padding:40px 20px;color:var(--ink-500)"><b>Tebrikler! Tüm görevler tamamlandı.</b></div></div>') +
     '</div>' +
     (tamam.length ? '<div class="panel" style="margin-top:20px"><div class="panel-header"><span>Tamamlanan Görevler</span><span class="badge-count">' +
-      tamam.length + '</span></div><div class="table-wrapper"><table><thead><tr><th>GÖREV</th><th>BİRİM</th><th>TERMİN</th><th>RİSK</th><th>DURUM</th></tr></thead><tbody>' +
+      tamam.length + '</span></div><div class="table-wrapper"><table><thead><tr><th>GÖREV</th><th>BİRİM</th><th>TERMİN</th>' + (rolum() === "egitmen" ? '' : '<th>RİSK</th>') + '<th>DURUM</th></tr></thead><tbody>' +
       taskRows(tamam, { oncelik:false }) + '</tbody></table></div></div>' : ''));
 }
 
@@ -441,7 +441,7 @@ function vGorev() {
               '<button class="btn sm" data-notekle="' + t.id + '">Ekle</button></div>' : '') +
           '</div></div>' +
       '</div>' +
-      '<div>' + riskKart(t) + ekPanel(t) + yorumPanel(t) + '</div>' +
+      '<div>' + (rolum() === "egitmen" ? "" : riskKart(t)) + ekPanel(t) + yorumPanel(t) + '</div>' +
     '</div>');
 }
 
