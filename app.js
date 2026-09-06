@@ -933,8 +933,17 @@ function yokFiltrele(list) {
   const f = S.yokFilt;
   return list.filter(y => {
     const g = gIdx[y.grup];
-    return (!f.birim || g.birim === f.birim) && (!f.grup || y.grup === f.grup) &&
-      (!f.bas || y.tarih >= f.bas) && (!f.bit || y.tarih <= f.bit);
+    if (!g) return false;
+    const b = bIdx[g.birim];
+    if (!b) return false;
+
+    const bolgeMatch = !f.bolge || bBolge(g.birim) === f.bolge;
+    const ilMatch = !f.il || b.il === f.il;
+    const birimMatch = !f.birim || g.birim === f.birim;
+    const grupMatch = !f.grup || y.grup === f.grup;
+    const basMatch = !f.bas || y.tarih >= f.bas;
+    const bitMatch = !f.bit || y.tarih <= f.bit;
+    return bolgeMatch && ilMatch && birimMatch && grupMatch && basMatch && bitMatch;
   });
 }
 const gerekcesizSayi = y => Object.keys(y.kayit)
@@ -947,6 +956,109 @@ function egtPill(d) {
     : '<span class="status-pill bekliyor">KAYIT YOK</span>';
 }
 
+function yoklamaAnaliz(kapsam) {
+  if (!kapsam || !kapsam.length) return null;
+  const ilMap = {};
+  let topOran = 0;
+  let egtKatildi = 0;
+  let mazeretsiz = 0;
+
+  kapsam.forEach(y => {
+    const g = gIdx[y.grup];
+    if (!g) return;
+    const b = bIdx[g.birim];
+    if (!b) return;
+
+    const o = yokOran(y);
+    topOran += o;
+    if (y.egitmenDurum === "Katıldı") egtKatildi++;
+    mazeretsiz += gerekcesizSayi(y);
+
+    if (!ilMap[b.il]) {
+      ilMap[b.il] = { il: b.il, bolge: bBolge(b.id), toplamOran: 0, sayi: 0, atolyeler: new Set() };
+    }
+    ilMap[b.il].toplamOran += o;
+    ilMap[b.il].sayi++;
+    ilMap[b.il].atolyeler.add(b.ad);
+  });
+
+  const ilSiralama = Object.values(ilMap).map(x => ({
+    il: x.il,
+    bolge: x.bolge,
+    oran: Math.round(x.toplamOran / Math.max(1, x.sayi)),
+    oturum: x.sayi,
+    atolyeSayisi: x.atolyeler.size
+  })).sort((a, b) => b.oran - a.oran);
+
+  return {
+    genelOrt: Math.round(topOran / Math.max(1, kapsam.length)),
+    egtOrt: Math.round(egtKatildi / Math.max(1, kapsam.length) * 100),
+    mazeretsiz,
+    enYuksek: ilSiralama[0] || { il: "—", oran: 0 },
+    enDusuk: ilSiralama[ilSiralama.length - 1] || { il: "—", oran: 0 },
+    ilSiralama,
+    toplamOturum: kapsam.length
+  };
+}
+
+function yoklamaInfografikPaneli(an) {
+  if (!an) return '';
+  return '<div class="panel" style="margin-bottom:20px;background:linear-gradient(135deg, #1C2033 0%, #0F172A 100%);color:#FFFFFF;padding:20px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 10px 25px -5px rgba(0,0,0,0.2)">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:12px">' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<span style="background:rgba(211,47,47,0.2);color:#EF4444;padding:8px;border-radius:8px;display:inline-flex">' + ic("i-chart") + '</span>' +
+        '<div><h4 style="margin:0;font-size:16px;font-weight:700;color:#F8FAFC">TÜRKİYE GENELİ ATÖLYE KATILIM İNFOGRAFİĞİ</h4>' +
+        '<span style="font-size:12px;color:#94A3B8">Katılım performansı, il ve atölye bazlı canlı devam analizi</span></div>' +
+      '</div>' +
+      '<span class="badge" style="background:rgba(16,185,129,0.15);color:#10B981;border:1px solid rgba(16,185,129,0.3);font-weight:700">' + an.toplamOturum + ' İşlenen Oturum</span>' +
+    '</div>' +
+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:20px">' +
+      '<div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:10px;border-left:4px solid #10B981">' +
+        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">EN YÜKSEK KATILIMLI İL</div>' +
+        '<div style="font-size:18px;font-weight:800;color:#34D399;margin:4px 0">' + esc(an.enYuksek.il) + ' (%' + an.enYuksek.oran + ')</div>' +
+        '<div style="font-size:11px;color:#CBD5E1">Lider İl Katılım Performansı</div>' +
+      '</div>' +
+
+      '<div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:10px;border-left:4px solid #EF4444">' +
+        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">DESTEK GEREKEN (EN DÜŞÜK) İL</div>' +
+        '<div style="font-size:18px;font-weight:800;color:#F87171;margin:4px 0">' + esc(an.enDusuk.il) + ' (%' + an.enDusuk.oran + ')</div>' +
+        '<div style="font-size:11px;color:#CBD5E1">Saha Denetimi Önerilir</div>' +
+      '</div>' +
+
+      '<div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:10px;border-left:4px solid #3B82F6">' +
+        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">GENEL KATILIM ORANI</div>' +
+        '<div style="font-size:18px;font-weight:800;color:#60A5FA;margin:4px 0">%' + an.genelOrt + '</div>' +
+        '<div style="font-size:11px;color:#CBD5E1">Tüm Türkiye Katılım Ortalaması</div>' +
+      '</div>' +
+
+      '<div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:10px;border-left:4px solid #F59E0B">' +
+        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">EĞİTMEN DERSE KATILIMI</div>' +
+        '<div style="font-size:18px;font-weight:800;color:#FBBF24;margin:4px 0">%' + an.egtOrt + '</div>' +
+        '<div style="font-size:11px;color:#CBD5E1">Eğitmen Yoklama Disiplini</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div>' +
+      '<div style="font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:10px">İLLER BAZINDA KATILIM MİZANI (İNFOGRAFİK KARŞILAŞTIRMA)</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px">' +
+        an.ilSiralama.slice(0, 6).map((item, idx) => {
+          const cls = item.oran >= 85 ? "#10B981" : item.oran >= 75 ? "#F59E0B" : "#EF4444";
+          return '<div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06)">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:6px">' +
+              '<span style="font-weight:700;color:#F1F5F9">#' + (idx + 1) + ' ' + esc(item.il) + '</span>' +
+              '<span style="font-weight:800;color:' + cls + '">%' + item.oran + '</span>' +
+            '</div>' +
+            '<div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden">' +
+              '<div style="width:' + item.oran + '%;height:100%;background:' + cls + ';border-radius:3px"></div>' +
+            '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
 function vYoklama() {
   const u = me();
   const gruplar = yokGruplari();
@@ -956,7 +1068,8 @@ function vYoklama() {
   const varOlan = YOKLAMA.find(y => y.grup === gid && y.tarih === tarih);
   const alabilir = u.rol === "egitmen";
 
-  const ort = kapsam.length ? Math.round(kapsam.reduce((a, y) => a + yokOran(y), 0) / kapsam.length) : 0;
+  const an = yoklamaAnaliz(kapsam);
+  const ort = an ? an.genelOrt : 0;
   const gerekcesiz = kapsam.filter(y => gerekcesizSayi(y) > 0).length;
 
   const sekmeler = (alabilir ? [["al","Yoklama Al"]] : [])
@@ -966,6 +1079,7 @@ function vYoklama() {
   return page(["il","egitmen"].includes(u.rol) ? bIdx[u.birim].il + " / " + bIdx[u.birim].ad : "Eğitim ve Katılım",
     u.rol === "koord" ? "Yoklama Denetim Paneli" : "Öğrenci & Eğitmen Yoklaması",
     '<button class="btn ghost" data-sor="1">' + ic("i-ask") + 'Sor</button>',
+    yoklamaInfografikPaneli(an) +
     '<div class="kpi-grid">' +
       kpi(kapsam.length, "Yoklama Oturumu") +
       kpi("%" + ort, "Ortalama Sınıf Katılımı", ort >= 85 ? "#16A34A" : ort >= 70 ? "var(--astro-orange)" : "var(--astro-red)") +
@@ -977,7 +1091,70 @@ function vYoklama() {
       '</button>').join('') + '</div>' +
     (sk === "al" ? yokAlPanel(gruplar, gid, tarih, varOlan)
       : sk === "kayit" ? yokKayitPanel(kapsam)
-      : yokDevamsizlikPanel(u.birim)));
+      : yokDevamsizlikPanel(u.birim)) +
+    (S.yokDetay ? yokDetayModal(S.yokDetay) : ''));
+}
+
+function yokDetayModal(id) {
+  const y = YOKLAMA.find(x => x.id === id);
+  if (!y) return '';
+  const g = gIdx[y.grup];
+  const b = g ? bIdx[g.birim] : null;
+  const egt = uIdx[y.egitmen];
+  const o = yokOran(y);
+  const sayim = YOK_DURUM.map(d => Object.values(y.kayit).filter(x => x === d).length);
+  const gz = gerekcesizSayi(y);
+
+  return '<div class="modal-backdrop" data-yokdetaykapat="1">' +
+    '<div class="modal-card" style="max-width:780px" onclick="event.stopPropagation()">' +
+      '<div class="modal-header">' +
+        '<div>' +
+          '<h3 style="margin:0;font-size:17px;font-weight:700;color:var(--ink-900)">' + ic("i-check") + ' Yoklama Oturumu Detayı (' + esc(y.id) + ')</h3>' +
+          '<div style="font-size:12.5px;color:var(--ink-500);margin-top:3px">' +
+            esc(g ? g.ad : "") + ' · ' + esc(b ? b.il + " / " + b.ad : "") + ' · ' + fmtLong(y.tarih) +
+          '</div>' +
+        '</div>' +
+        '<button class="modal-close" data-yokdetaykapat="1">✕</button>' +
+      '</div>' +
+
+      '<div class="modal-body">' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));gap:10px;margin-bottom:18px;background:var(--bg-wash);padding:14px;border-radius:10px;border:1px solid var(--card-border)">' +
+          '<div><div style="font-size:11px;font-weight:700;color:var(--ink-500)">SINIF KATILIMI</div><div style="font-size:20px;font-weight:800;color:' + (o >= 85 ? '#16A34A' : 'var(--astro-orange)') + '">%' + o + '</div></div>' +
+          '<div><div style="font-size:11px;font-weight:700;color:var(--ink-500)">EĞİTMEN KATILIMI</div><div>' + egtPill(y.egitmenDurum) + '</div></div>' +
+          '<div><div style="font-size:11px;font-weight:700;color:var(--ink-500)">ÖĞRENCİ DAĞILIMI</div><div style="font-size:12px;font-weight:600;color:var(--ink-800);margin-top:4px">' +
+            '<span style="color:#16A34A">' + sayim[0] + ' Katıldı</span> · <span style="color:var(--astro-red)">' + sayim[1] + ' Yok</span> · <span style="color:var(--astro-orange)">' + sayim[2] + ' İzinli</span></div></div>' +
+          '<div><div style="font-size:11px;font-weight:700;color:var(--ink-500)">MAZERETSİZ DEVAMSIZLIK</div><div style="font-size:16px;font-weight:800;color:' + (gz ? 'var(--astro-red)' : '#16A34A') + '">' + (gz ? gz + ' Öğrenci' : 'Yok (Tam Mazeretli)') + '</div></div>' +
+        '</div>' +
+
+        (y.egitmenDurum !== "Katıldı" && y.egitmenGerekce ?
+          '<div style="margin-bottom:16px;padding:10px 14px;background:#FFFBEB;border-left:4px solid #F59E0B;border-radius:6px;font-size:12.5px;color:#92400E">' +
+            '<b>Eğitmen Devamsızlık Mazereti (' + esc(egt ? egt.ad : "Eğitmen") + '):</b> ' + esc(y.egitmenGerekce) +
+          '</div>' : '') +
+
+        '<div style="font-weight:700;font-size:13px;color:var(--ink-900);margin-bottom:8px">Sınıf Öğrenci Listesi ve Mazeret Kayıtları (' + (g && g.ogr ? g.ogr.length : 0) + ' Öğrenci)</div>' +
+        '<div class="table-wrapper" style="max-height:360px;overflow-y:auto"><table><thead><tr><th>NO</th><th>ÖĞRENCİ ADI SOYADI</th><th>DURUM</th><th>MAZERET / GEREKÇE NOTU</th></tr></thead><tbody>' +
+        (g && g.ogr ? g.ogr.map((oItem, idx) => {
+          const st = y.kayit[oItem.id] || "Katıldı";
+          const ger = (y.gerekce || {})[oItem.id];
+          const stBadge = st === "Katıldı" ? '<span class="status-pill tamam">KATILDI</span>'
+            : st === "İzinli" ? '<span class="status-pill bekliyor">İZİNLİ</span>'
+            : '<span class="status-pill gecikti">KATILMADI</span>';
+          return '<tr>' +
+            '<td class="tabular-date">' + (idx + 1) + '</td>' +
+            '<td class="task-title"><b>' + esc(oItem.ad) + '</b></td>' +
+            '<td>' + stBadge + '</td>' +
+            '<td style="font-size:12px;color:' + (ger ? 'var(--ink-800)' : 'var(--ink-400)') + '">' + (ger ? esc(ger) : (st === "Katıldı" ? "—" : "<i style='color:var(--astro-red)'>Mazeret Bildirilmedi</i>")) + '</td>' +
+            '</tr>';
+        }).join('') : '<tr><td colspan="4"><div style="text-align:center;padding:20px;color:var(--ink-400)">Öğrenci kaydı bulunamadı.</div></td></tr>') +
+        '</tbody></table></div>' +
+      '</div>' +
+
+      '<div class="modal-footer" style="display:flex;justify-content:space-between">' +
+        '<button class="btn ghost sm" data-aktar="yoklama">' + ic("i-down") + 'Rapor Olarak İndir</button>' +
+        '<button class="btn" data-yokdetaykapat="1">Kapat</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
 }
 
 function yokAlPanel(gruplar, gid, tarih, varOlan) {
@@ -1039,42 +1216,71 @@ function yokTaslakPanel(t) {
 }
 
 function yokKayitPanel(kapsam) {
+  const u = me();
   const f = S.yokFilt;
   const gruplar = yokGruplari();
   const list = yokFiltrele(kapsam).sort((a, b) => b.tarih.localeCompare(a.tarih));
-  const birimListe = ["il","egitmen"].includes(rolum()) ? BIRIM.filter(b => b.id === me().birim) : BIRIM;
-  const grupListe = f.birim ? gruplar.filter(g => g.birim === f.birim) : gruplar;
+  const kilitli = u.rol === "egitmen" || u.rol === "il";
+
+  const illerList = f.bolge ? BIRIM.filter(b => bBolge(b.id) === f.bolge).map(b => b.il) : BIRIM.map(b => b.il);
+  const benzersizIller = Array.from(new Set(illerList));
+
+  const birimListe = kilitli ? BIRIM.filter(b => b.id === u.birim) :
+    BIRIM.filter(b => (!f.bolge || bBolge(b.id) === f.bolge) && (!f.il || b.il === f.il));
+
+  const grupListe = f.birim ? gruplar.filter(g => g.birim === f.birim) :
+    (f.il ? gruplar.filter(g => bIdx[g.birim] && bIdx[g.birim].il === f.il) : gruplar);
 
   return '<div class="filter-bar">' +
-    (birimListe.length > 1 ? '<div class="form-group"><label>ATÖLYE</label><select data-yf="birim">' +
-      '<option value="">Tümü</option>' + birimListe.map(b => '<option value="' + b.id + '"' +
-        (b.id === f.birim ? " selected" : "") + '>' + esc(b.il) + '</option>').join('') +
-      '</select></div>' : '') +
-    '<div class="form-group" style="min-width:200px"><label>GRUP</label><select data-yf="grup">' +
-      '<option value="">Tümü</option>' + grupListe.map(g => '<option value="' + g.id + '"' +
-        (g.id === f.grup ? " selected" : "") + '>' + esc(g.ad) + '</option>').join('') +
+    (!kilitli ?
+      '<div class="form-group"><label>ÜLKE</label><select data-yf="ulke">' +
+        '<option value="">Tümü</option>' +
+        '<option value="TR"' + (f.ulke === "TR" || !f.ulke ? " selected" : "") + '>Türkiye</option>' +
+        '<option value="AZ"' + (f.ulke === "AZ" ? " selected" : "") + '>Azerbaycan</option>' +
+        '<option value="KKTC"' + (f.ulke === "KKTC" ? " selected" : "") + '>KKTC</option>' +
       '</select></div>' +
+      '<div class="form-group"><label>BÖLGE</label><select data-yf="bolge">' +
+        '<option value="">Tüm Bölgeler</option>' +
+        BOLGE.map(x => '<option' + (x === f.bolge ? " selected" : "") + '>' + x + '</option>').join('') +
+      '</select></div>' +
+      '<div class="form-group"><label>İL</label><select data-yf="il">' +
+        '<option value="">Tüm İller</option>' +
+        benzersizIller.map(il => '<option' + (il === f.il ? " selected" : "") + '>' + il + '</option>').join('') +
+      '</select></div>' +
+      '<div class="form-group"><label>ATÖLYE</label><select data-yf="birim">' +
+        '<option value="">Tüm Atölyeler</option>' +
+        birimListe.map(b => '<option value="' + b.id + '"' + (b.id === f.birim ? " selected" : "") + '>' +
+          esc(b.il + " / " + b.ad) + '</option>').join('') +
+      '</select></div>'
+    : '') +
+    '<div class="form-group" style="min-width:180px"><label>EĞİTİM GRUBU</label><select data-yf="grup">' +
+      '<option value="">Tüm Gruplar</option>' +
+      grupListe.map(g => '<option value="' + g.id + '"' + (g.id === f.grup ? " selected" : "") + '>' +
+        esc(g.ad) + '</option>').join('') +
+    '</select></div>' +
     '<div class="form-group"><label>BAŞLANGIÇ</label><input type="date" data-yf="bas" value="' + esc(f.bas) + '"></div>' +
     '<div class="form-group"><label>BİTİŞ</label><input type="date" data-yf="bit" value="' + esc(f.bit) + '"></div>' +
     '<button class="btn ghost sm" data-aktar="yoklama">' + ic("i-down") + 'Yoklama Listesi İndir</button>' +
     '<button class="btn ghost sm" data-yoktemizle="1">Temizle</button>' +
-    '</div>' +
-    '<div class="panel"><div class="panel-header"><span>Yoklama Kayıtları</span><span class="badge-count">' +
-      list.length + ' kayıt</span></div>' +
-    '<div class="table-wrapper"><table><thead><tr><th>GRUP</th><th>ATÖLYE</th><th>TARİH</th><th>EĞİTMEN</th><th>EĞİTMEN KATILIMI</th><th>SINIF KATILIMI</th><th>MAZERETSİZ</th></tr></thead><tbody>' +
-    (list.length ? list.slice(0, 30).map(y => {
-      const o = yokOran(y), g = gIdx[y.grup], gz = gerekcesizSayi(y);
-      return '<tr><td class="task-title">' + esc(g.ad) + '</td>' +
-        '<td class="tabular-date">' + esc(bIdx[g.birim].il) + '</td>' +
-        '<td class="tabular-date">' + fmtLong(y.tarih) + '</td>' +
-        '<td>' + esc(uIdx[y.egitmen] ? uIdx[y.egitmen].ad : "—") + '</td>' +
-        '<td>' + egtPill(y.egitmenDurum) + '</td>' +
-        '<td><span class="risk-meter"><span class="risk-track" style="width:60px"><span class="risk-fill" style="width:' + o +
-          '%;background:' + (o >= 85 ? '#16A34A' : o >= 70 ? 'var(--astro-orange)' : 'var(--astro-red)') +
-          '"></span></span><span class="risk-score">%' + o + '</span></span></td>' +
-        '<td class="tabular-date"' + (gz ? ' style="color:var(--astro-red);font-weight:700"' : '') + '>' + (gz || "—") + '</td></tr>';
-    }).join('') : '<tr><td colspan="7"><div style="text-align:center;padding:30px;color:var(--ink-400)">Kayıt bulunmuyor.</div></td></tr>') +
-    '</tbody></table></div></div>';
+  '</div>' +
+  '<div class="panel"><div class="panel-header"><span>Yoklama Kayıtları ve Denetim</span><span class="badge-count">' +
+    list.length + ' kayıt</span></div>' +
+  '<div class="table-wrapper"><table><thead><tr><th>GRUP</th><th>ATÖLYE</th><th>TARİH</th><th>EĞİTMEN</th><th>EĞİTMEN KATILIMI</th><th>SINIF KATILIMI</th><th>MAZERETSİZ</th><th>DETAY</th></tr></thead><tbody>' +
+  (list.length ? list.slice(0, 30).map(y => {
+    const o = yokOran(y), g = gIdx[y.grup], gz = gerekcesizSayi(y);
+    return '<tr style="cursor:pointer" data-yokdetay="' + y.id + '">' +
+      '<td class="task-title"><b>' + esc(g ? g.ad : "—") + '</b><br><small style="color:var(--ink-500);font-size:11px">Detaylar için tıklayın</small></td>' +
+      '<td class="tabular-date">' + esc(g && bIdx[g.birim] ? bIdx[g.birim].il : "—") + '</td>' +
+      '<td class="tabular-date">' + fmtLong(y.tarih) + '</td>' +
+      '<td>' + esc(uIdx[y.egitmen] ? uIdx[y.egitmen].ad : "—") + '</td>' +
+      '<td>' + egtPill(y.egitmenDurum) + '</td>' +
+      '<td><span class="risk-meter"><span class="risk-track" style="width:60px"><span class="risk-fill" style="width:' + o +
+        '%;background:' + (o >= 85 ? '#16A34A' : o >= 70 ? 'var(--astro-orange)' : 'var(--astro-red)') +
+        '"></span></span><span class="risk-score">%' + o + '</span></span></td>' +
+      '<td class="tabular-date"' + (gz ? ' style="color:var(--astro-red);font-weight:700"' : '') + '>' + (gz || "—") + '</td>' +
+      '<td><button class="btn ghost sm" data-yokdetay="' + y.id + '">' + ic("i-search") + ' İncele</button></td></tr>';
+  }).join('') : '<tr><td colspan="8"><div style="text-align:center;padding:30px;color:var(--ink-400)">Seçilen kriterlere uygun kayıt bulunmuyor.</div></td></tr>') +
+  '</tbody></table></div></div>';
 }
 
 function yokDevamsizlikPanel(bid) {
@@ -1150,11 +1356,11 @@ function malzemeTalepleriPanel() {
   const list = kilitli ? MALZEME_TALEPLERI.filter(x => x.birim === u.birim) : MALZEME_TALEPLERI;
 
   return '<div class="panel" style="margin-top:22px">' +
-    '<div class="panel-header"><span>' + ic("i-box") + ' İllerden Merkeze İletilen Malzeme Talepleri</span>' +
+    '<div class="panel-header"><span>' + ic("i-box") + (kilitli ? ' Atölyemiz Tarafından Merkeze İletilen Malzeme Talepleri' : ' İllerden Merkeze İletilen Malzeme Tedarik Talepleri (Onay & Sevk Paneli)') + '</span>' +
       '<span class="badge-count">' + list.length + ' talep</span></div>' +
     '<div class="table-wrapper"><table><thead><tr>' +
       '<th>TALEP NO</th><th>ATÖLYE / İL</th><th>MALZEME KAPSAMI</th><th>ADET</th><th>ÖNCELİK</th><th>GEREKÇE</th><th>TARİH</th><th>DURUM</th>' +
-      (u.rol === "merkez" || u.rol === "koord" ? '<th>İŞLEM</th>' : '') +
+      (!kilitli ? '<th>İŞLEM</th>' : '') +
       '</tr></thead><tbody>' +
     (list.length ? list.map(t => {
       const stCls = t.durum.includes("Onay") ? "status-pill tamam" : t.durum.includes("Red") ? "status-pill gecikti" : "status-pill bekliyor";
@@ -1167,7 +1373,7 @@ function malzemeTalepleriPanel() {
         '<td style="font-size:12px;color:var(--ink-600);max-width:260px">' + esc(t.gerekce || "—") + '</td>' +
         '<td class="tabular-date">' + fmt(t.tarih) + '</td>' +
         '<td><span class="' + stCls + '">' + esc(t.durum) + '</span></td>' +
-        (u.rol === "merkez" || u.rol === "koord" ?
+        (!kilitli ?
           '<td><div style="display:flex;gap:6px">' +
             (t.durum === "Bekliyor" ?
               '<button class="btn sm" style="background:#16A34A" data-taleponayla="' + t.id + '">' + ic("i-check") + 'Onayla & Sevk Et</button>' +
@@ -1210,6 +1416,11 @@ function vEnvanter() {
       (S.envEkleAcik ? "Formu Gizle" : "Katalogdan Malzeme Ekle") + '</button>' : '') +
     (yaz ? '<button class="btn ghost" data-envsayim="1">' + ic("i-check") + 'Sayımı Bugüne İşle</button>' : '') +
     '<button class="btn ghost" data-sor="1">' + ic("i-ask") + 'Sor</button>',
+    (!kilitli ?
+      '<div class="note" style="margin-bottom:16px;background:#F0F9FF;border:1px solid #BAE6FD;color:#0369A1;padding:10px 14px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px">' +
+        ic("i-info") + ' <b>Rol & Yetki Kuralları:</b> Merkez Operasyon Ekibi illerden gelen malzeme tedarik taleplerini inceler ve onaylar/sevk eder. Malzeme talebini iller (İl Sorumluları) gönderir.</div>' :
+      '<div class="note" style="margin-bottom:16px;background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D;padding:10px 14px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px">' +
+        ic("i-info") + ' <b>Rol & Yetki Kuralları:</b> İl Sorumlusu olarak atölyenizdeki eksik malzemeler için <b>"Merkeze Malzeme Talebi İlet"</b> butonunu kullanarak Genel Merkez\'den malzeme sevkiyatı talep edebilirsiniz.</div>') +
     '<div class="kpi-grid">' +
       kpi(hepsi.length, "Takip Edilen Kalem") +
       kpi(eksik, "Asgari Altında Kalem", "var(--astro-orange)") +
@@ -1217,7 +1428,7 @@ function vEnvanter() {
       kpi(vadeGecen, "Sayım Vadesi Geçen", vadeGecen ? "var(--astro-red)" : "#16A34A") +
       kpi("%" + genelPc, "Müfredat Hazırlığı", genelPc >= 85 ? "#16A34A" : "var(--astro-orange)") +
     '</div>' +
-    (S.envTalepFormAcik ? talepFormuPanel(u.birim) : '') +
+    (kilitli && S.envTalepFormAcik ? talepFormuPanel(u.birim) : '') +
     (kilitli && S.envEkleAcik ? eklePaneli(u.birim) : '') +
     '<div class="filter-bar">' +
       (kilitli ? '' :
@@ -1318,22 +1529,150 @@ function birimRisk(bid) {
 }
 const tumRisk = () => BIRIM.map(b => birimRisk(b.id)).sort((a, b) => b.toplam - a.toplam);
 
+function yoneticiInfografikBanner(r) {
+  if (!r || !r.length) return '';
+  const enYuksek = r[0];
+  const enDusuk = r[r.length - 1];
+  const ortSkor = Math.round(r.reduce((a, x) => a + x.toplam, 0) / r.length);
+  const yuksekRiskliCount = r.filter(x => x.toplam >= 50).length;
+
+  const bolgeMap = {};
+  r.forEach(x => {
+    const bl = x.b.bolge;
+    if (!bolgeMap[bl]) bolgeMap[bl] = { bolge: bl, toplam: 0, sayi: 0 };
+    bolgeMap[bl].toplam += x.toplam;
+    bolgeMap[bl].sayi++;
+  });
+  const bolgeSiralama = Object.values(bolgeMap).map(x => ({
+    bolge: x.bolge,
+    skor: Math.round(x.toplam / x.sayi),
+    atolyeSayisi: x.sayi
+  })).sort((a, b) => b.skor - a.skor);
+
+  return '<div class="panel" style="margin-bottom:22px;background:linear-gradient(135deg, #1C2033 0%, #0F172A 100%);color:#FFFFFF;padding:22px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 10px 25px -5px rgba(0,0,0,0.25)">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:14px">' +
+      '<div style="display:flex;align-items:center;gap:12px">' +
+        '<span style="background:rgba(211,47,47,0.25);color:#EF4444;padding:10px;border-radius:10px;display:inline-flex">' + ic("i-chart") + '</span>' +
+        '<div><h3 style="margin:0;font-size:18px;font-weight:800;color:#F8FAFC">TÜRKİYE DENEYAP ATÖLYELERİ YÖNETİCİ RİSK & STRATEJİ İNFOGRAFİĞİ</h3>' +
+        '<span style="font-size:12px;color:#94A3B8">Genel merkez yönetim radarı, risk indeksi ve saha operasyon analizleri</span></div>' +
+      '</div>' +
+      '<span class="badge" style="background:rgba(211,47,47,0.2);color:#F87171;border:1px solid rgba(239,68,68,0.3);font-weight:700;font-size:12px">' + yuksekRiskliCount + ' Atölye Yüksek Riskli</span>' +
+    '</div>' +
+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:22px">' +
+      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;border-left:4px solid #EF4444">' +
+        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">EN YÜKSEK RİSKLİ ATÖLYE</div>' +
+        '<div style="font-size:19px;font-weight:800;color:#F87171;margin:4px 0">' + esc(enYuksek.b.il) + ' (Skor: ' + enYuksek.toplam + ')</div>' +
+        '<div style="font-size:11.5px;color:#CBD5E1">' + esc(enYuksek.b.ad) + ' · Müdahale Gerekli</div>' +
+      '</div>' +
+
+      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;border-left:4px solid #10B981">' +
+        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">EN GÜVENLİ / BAŞARILI ATÖLYE</div>' +
+        '<div style="font-size:19px;font-weight:800;color:#34D399;margin:4px 0">' + esc(enDusuk.b.il) + ' (Skor: ' + enDusuk.toplam + ')</div>' +
+        '<div style="font-size:11.5px;color:#CBD5E1">' + esc(enDusuk.b.ad) + ' · Yüksek Performans</div>' +
+      '</div>' +
+
+      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;border-left:4px solid #3B82F6">' +
+        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">TÜRKİYE ORTALAMA RİSK ENDEKSİ</div>' +
+        '<div style="font-size:19px;font-weight:800;color:#60A5FA;margin:4px 0">' + ortSkor + ' / 100</div>' +
+        '<div style="font-size:11.5px;color:#CBD5E1">12 Atölye Birleşik Risk Skoru</div>' +
+      '</div>' +
+
+      '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;border-left:4px solid #F59E0B">' +
+        '<div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.5px">AKSAKLIK UYARI SAYISI</div>' +
+        '<div style="font-size:19px;font-weight:800;color:#FBBF24;margin:4px 0">' + TASKS.filter(t => t.durum === "Gecikti").length + ' Geciken Görev</div>' +
+        '<div style="font-size:11.5px;color:#CBD5E1">Takip Gerektiren İşlemler</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div>' +
+      '<div style="font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:12px">BÖLGELER BAZINDA ORTALAMA RİSK DAĞILIMI (İNFOGRAFİK PERFORMANS)</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px">' +
+        bolgeSiralama.map((item) => {
+          const cls = item.skor >= 50 ? "#EF4444" : item.skor >= 30 ? "#F59E0B" : "#10B981";
+          return '<div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06)">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-bottom:6px">' +
+              '<span style="font-weight:700;color:#F1F5F9">' + esc(item.bolge) + '</span>' +
+              '<span style="font-weight:800;color:' + cls + '">Skor: ' + item.skor + '</span>' +
+            '</div>' +
+            '<div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden">' +
+              '<div style="width:' + item.skor + '%;height:100%;background:' + cls + ';border-radius:3px"></div>' +
+            '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function atolyeRiskDetayModal(bid) {
+  const r = birimRisk(bid);
+  if (!r) return '';
+  const b = r.b;
+  const gorevler = TASKS.filter(t => t.birim === bid && t.durum !== "Tamamlandı");
+  const envEksik = ENVANTER.filter(e => e.birim === bid && envDurum(e) !== "Yeterli");
+
+  return '<div class="modal-backdrop" data-riskdetaykapat="1">' +
+    '<div class="modal-card" style="max-width:750px" onclick="event.stopPropagation()">' +
+      '<div class="modal-header">' +
+        '<div>' +
+          '<h3 style="margin:0;font-size:17px;font-weight:700;color:var(--ink-900)">' + ic("i-alert") + ' ' + esc(b.il + " / " + b.ad) + ' Risk & Operasyon Analizi</h3>' +
+          '<div style="font-size:12.5px;color:var(--ink-500);margin-top:3px">Bölge: ' + esc(b.bolge) + ' · Genel Risk Skoru: <b style="color:' + riskColor(r.toplam) + '">' + r.toplam + ' / 100</b></div>' +
+        '</div>' +
+        '<button class="modal-close" data-riskdetaykapat="1">✕</button>' +
+      '</div>' +
+
+      '<div class="modal-body">' +
+        '<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;margin-bottom:18px;background:var(--bg-wash);padding:14px;border-radius:10px;border:1px solid var(--card-border)">' +
+          '<div><div style="font-size:11px;font-weight:700;color:var(--ink-500)">GÖREV RİSK SKORU</div><div style="font-size:22px;font-weight:800;color:' + riskColor(r.gorevSkor) + '">' + r.gorevSkor + '</div><div style="font-size:11px;color:var(--ink-500)">' + gorevler.length + ' Aktif Görev</div></div>' +
+          '<div><div style="font-size:11px;font-weight:700;color:var(--ink-500)">ENVANTER EKSİK SKORU</div><div style="font-size:22px;font-weight:800;color:' + riskColor(r.envSkor) + '">' + r.envSkor + '</div><div style="font-size:11px;color:var(--ink-500)">' + r.eksik + ' Eksik Kalem</div></div>' +
+          '<div><div style="font-size:11px;font-weight:700;color:var(--ink-500)">SAYIM VADE GECİKMESİ</div><div style="font-size:22px;font-weight:800;color:' + riskColor(r.sayimSkor) + '">' + r.sayimSkor + '</div><div style="font-size:11px;color:var(--ink-500)">' + r.vade + ' Sayım Vadesi Geçen</div></div>' +
+        '</div>' +
+
+        '<div style="font-weight:700;font-size:13px;color:var(--ink-900);margin-bottom:8px">Atölyedeki Geciken ve Devam Eden Görevler (' + gorevler.length + ')</div>' +
+        '<div class="table-wrapper" style="max-height:200px;overflow-y:auto;margin-bottom:16px"><table><thead><tr><th>GÖREV</th><th>TERMİN</th><th>DURUM</th></tr></thead><tbody>' +
+        (gorevler.length ? gorevler.map(t => '<tr><td class="task-title"><b>' + esc(t.baslik) + '</b></td><td class="tabular-date">' + fmt(t.termin) + '</td><td>' + stPill(t.durum) + '</td></tr>').join('')
+          : '<tr><td colspan="3"><div style="text-align:center;padding:16px;color:var(--ink-400)">Geciken görev bulunmuyor.</div></td></tr>') +
+        '</tbody></table></div>' +
+
+        '<div style="font-weight:700;font-size:13px;color:var(--ink-900);margin-bottom:8px">Eksik / Asgari Altında Malzemeler (' + envEksik.length + ')</div>' +
+        '<div class="table-wrapper" style="max-height:180px;overflow-y:auto"><table><thead><tr><th>MALZEME</th><th>MEVCUT</th><th>ASGARİ</th><th>DURUM</th></tr></thead><tbody>' +
+        (envEksik.length ? envEksik.map(e => {
+          const m = envKat(e);
+          return '<tr><td class="task-title"><b>' + esc(m.ad) + '</b></td><td class="tabular-date">' + e.adet + '</td><td class="tabular-date">' + m.min + '</td><td>' + envPill(e) + '</td></tr>';
+        }).join('') : '<tr><td colspan="4"><div style="text-align:center;padding:16px;color:var(--ink-400)">Eksik malzeme bulunmuyor.</div></td></tr>') +
+        '</tbody></table></div>' +
+      '</div>' +
+
+      '<div class="modal-footer" style="display:flex;justify-content:space-between">' +
+        '<button class="btn ghost sm" data-git="gorevler" data-efbirim="' + bid + '">Görevlere Git</button>' +
+        '<button class="btn" data-riskdetaykapat="1">Kapat</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
 function vRiskpano() {
   const r = tumRisk();
   return page("Yönetim Radarı", "Tüm Atölyeler Genel Risk Paneli",
     '<button class="btn ghost" data-aktar="risk">' + ic("i-down") + 'Risk Raporu İndir</button>' +
     '<button class="btn ghost" onclick="window.print()">' + ic("i-file") + 'Yazdır</button>',
+    yoneticiInfografikBanner(r) +
     ipucu("Görev gecikmeleri, envanter eksikleri ve sayım vadesi gecikmeleri tek bir birleşik risk endeksinde ağırlıklandırılır.") +
     '<div class="panel"><div class="panel-header"><span>Atölye Risk Analiz Tablosu</span><span class="badge-count">' + r.length + ' atölye</span></div>' +
-    '<div class="table-wrapper"><table><thead><tr><th>ATÖLYE</th><th>BÖLGE</th><th>GÖREV RİSKİ</th><th>ENVANTER RİSKİ</th><th>SAYIM RİSKİ</th><th>GENEL RİSK ENDEKSİ</th></tr></thead><tbody>' +
-    r.map(x => '<tr><td class="task-title">' + esc(x.b.il) + '<small>' + esc(x.b.ad) + '</small></td>' +
+    '<div class="table-wrapper"><table><thead><tr><th>ATÖLYE</th><th>BÖLGE</th><th>GÖREV RİSKİ</th><th>ENVANTER RİSKİ</th><th>SAYIM RİSKİ</th><th>GENEL RİSK ENDEKSİ</th><th>DETAY</th></tr></thead><tbody>' +
+    r.map(x => '<tr style="cursor:pointer" data-riskdetay="' + x.bid + '">' +
+      '<td class="task-title"><b>' + esc(x.b.il) + '</b><small>' + esc(x.b.ad) + '</small></td>' +
       '<td class="tabular-date">' + esc(x.b.bolge) + '</td>' +
       '<td class="tabular-date" style="color:' + riskColor(x.gorevSkor) + '">' + x.gorevSkor + '</td>' +
       '<td class="tabular-date" style="color:' + riskColor(x.envSkor) + '">' + x.envSkor + '</td>' +
       '<td class="tabular-date" style="color:' + riskColor(x.sayimSkor) + '">' + x.sayimSkor + '</td>' +
       '<td><span class="risk-meter"><span class="risk-track" style="width:70px"><span class="risk-fill" style="width:' + x.toplam +
-      '%;background:' + riskColor(x.toplam) + '"></span></span><span class="risk-score">' + x.toplam + '</span></span></td></tr>').join('') +
-    '</tbody></table></div></div>');
+      '%;background:' + riskColor(x.toplam) + '"></span></span><span class="risk-score">' + x.toplam + '</span></span></td>' +
+      '<td><button class="btn ghost sm" data-riskdetay="' + x.bid + '">' + ic("i-search") + ' İncele</button></td>' +
+      '</tr>').join('') +
+    '</tbody></table></div></div>' +
+    (S.riskDetay ? atolyeRiskDetayModal(S.riskDetay) : ''));
 }
 
 /* ── 14. EĞİTMEN PROFİLİ ── */
@@ -1735,7 +2074,7 @@ function render() {
   const app = document.getElementById("app");
   if (!S.userId) { app.innerHTML = vGiris(); return; }
   const f = VIEWS[S.view] || vPano;
-  app.innerHTML = '<div class="shell">' + sidebar() + '<main>' + f() + '</main></div>' + drawer() + aktarimModal() +
+  app.innerHTML = '<div class="shell">' + sidebar() + '<main>' + f() + '</main></div>' + drawer() + aktarimModal() + (S.yokDetay ? yokDetayModal(S.yokDetay) : '') + (S.riskDetay ? atolyeRiskDetayModal(S.riskDetay) : '') +
     (S.toast ? '<div class="toast-notice">🚀 ' + esc(S.toast) + '</div>' : '');
   if (S.toast) { const t = S.toast; setTimeout(() => { if (S.toast === t) { S.toast = null; render(); } }, 2800); }
   const si = document.getElementById("sorInp"); if (si) si.focus();
@@ -2052,12 +2391,27 @@ document.addEventListener("click", e => {
     toast("Yoklama başarıyla kaydedildi."); render(); return;
   }
   if (d.yoksekme) { S.yokSekme = d.yoksekme; render(); return; }
-  if (d.yoktemizle) { S.yokFilt = { birim:"", grup:"", bas:"", bit:"" }; render(); return; }
+  if (d.yoktemizle) { S.yokFilt = { ulke:"", bolge:"", il:"", birim:"", grup:"", bas:"", bit:"" }; render(); return; }
+  if (d.yokdetay) { S.yokDetay = d.yokdetay; render(); return; }
+  if (d.yokdetaykapat) { S.yokDetay = null; render(); return; }
+  if (d.riskdetay) { S.riskDetay = d.riskdetay; render(); return; }
+  if (d.riskdetaykapat) { S.riskDetay = null; render(); return; }
 
   /* Envanter */
-  if (d.envtalepac) { S.envTalepFormAcik = !S.envTalepFormAcik; render(); return; }
+  if (d.envtalepac) {
+    const u2 = me();
+    if (u2.rol === "merkez" || u2.rol === "koord" || u2.rol === "yonetici") {
+      toast("Merkez ekibi malzeme talebi gönderemez. Yetki iller/il sorumlularındadır.");
+      return;
+    }
+    S.envTalepFormAcik = !S.envTalepFormAcik; render(); return;
+  }
   if (d.envtalepgonder) {
     const u2 = me();
+    if (u2.rol === "merkez" || u2.rol === "koord" || u2.rol === "yonetici") {
+      toast("Merkez ekibi malzeme talebi gönderemez. Yetki iller/il sorumlularındadır.");
+      return;
+    }
     const bid = (document.getElementById("tlpBirim") || {}).value || u2.birim || "b1";
     const malzeme = (document.getElementById("tlpMalzeme") || {}).value || "Genel Malzeme Tedariği";
     const adet = parseInt((document.getElementById("tlpAdet") || {}).value, 10) || 10;
@@ -2268,7 +2622,14 @@ document.addEventListener("change", e => {
     render(); return;
   }
   if (el.dataset.f !== undefined) { S.filt[el.dataset.f] = el.value; render(); return; }
-  if (el.dataset.yf !== undefined) { S.yokFilt[el.dataset.yf] = el.value; render(); return; }
+  if (el.dataset.yf !== undefined) {
+    const k = el.dataset.yf;
+    S.yokFilt[k] = el.value;
+    if (k === "bolge") { S.yokFilt.il = ""; S.yokFilt.birim = ""; S.yokFilt.grup = ""; }
+    else if (k === "il") { S.yokFilt.birim = ""; S.yokFilt.grup = ""; }
+    else if (k === "birim") { S.yokFilt.grup = ""; }
+    render(); return;
+  }
   if (el.dataset.yokgrup !== undefined) { S.yokGrup = el.value; S.yokTaslak = null; render(); return; }
   if (el.dataset.yoktarih !== undefined) { S.yokTarih = el.value; S.yokTaslak = null; render(); return; }
   if (el.dataset.rolsec !== undefined) {

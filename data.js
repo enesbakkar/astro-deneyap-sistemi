@@ -775,7 +775,8 @@ let S = {
   duyuruYeniAcik: false, duyuruKapsam: "tumu",
   komId: "", profilId: "", yokDenetimBirim: "", yokDenetimGrup: "",
   envSekme: "liste",
-  yokSekme: "kayit", yokDetay: "", yokFilt: { birim:"", grup:"", bas:"", bit:"" },
+  yokSekme: "kayit", yokDetay: "", yokFilt: { ulke:"", bolge:"", il:"", birim:"", grup:"", bas:"", bit:"" },
+  riskDetay: null,
   eksikSebep: null,
   aktarim: null,
   toast: null
