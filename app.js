@@ -1117,6 +1117,71 @@ function fazOzet(bidler) {
   });
 }
 
+function talepFormuPanel(bid) {
+  const u = me();
+  return '<div class="panel" style="margin-bottom:18px;border:1.5px solid #0284C7;background:#F0F9FF">' +
+    '<div class="panel-header" style="background:#E0F2FE;color:#0369A1"><span>' + ic("i-box") + ' Genel Merkeze Malzeme Talebi İlet</span></div>' +
+    '<div class="panel-body">' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;align-items:flex-end">' +
+        (u.rol === "merkez" || u.rol === "koord" ?
+          '<div class="form-group"><label style="color:#0369A1">TALEP EDEN BİRİM</label><select id="tlpBirim">' +
+            BIRIM.map(b => '<option value="' + b.id + '">' + esc(b.il + " / " + b.ad) + '</option>').join('') +
+          '</select></div>' : '') +
+        '<div class="form-group" style="flex:1.5"><label style="color:#0369A1">TALEP EDİLEN MALZEME</label>' +
+          '<select id="tlpMalzeme">' +
+            ENV_KATALOG.map(m => '<option value="' + esc(m.ad) + '">' + esc(m.ad) + ' (' + esc(m.kat) + ')</option>').join('') +
+          '</select></div>' +
+        '<div class="form-group"><label style="color:#0369A1">TALEP ADEDİ</label>' +
+          '<input type="number" id="tlpAdet" value="10" min="1" max="500"></div>' +
+        '<div class="form-group"><label style="color:#0369A1">ACİLİYET / ÖNCELİK</label>' +
+          '<select id="tlpOncelik">' +
+            ONCELIK.map(o => '<option' + (o === "Yüksek" ? " selected" : "") + '>' + o + '</option>').join('') +
+          '</select></div>' +
+        '<div class="form-group wide"><label style="color:#0369A1">GEREKÇE VE TALEP NOTU</label>' +
+          '<input type="text" id="tlpGerekce" placeholder="Örn. Robotik kodlama dersi öncesi filament stoğu tükendi, acil sevkiyat talebidir."></div>' +
+        '<div style="margin-top:8px;display:flex;gap:10px">' +
+          '<button class="btn" data-envtalepgonder="1" style="background:#0284C7">' + ic("i-check") + 'Merkez Operasyona İlet</button>' +
+          '<button class="btn ghost" data-envtalepac="1">Vazgeç</button>' +
+        '</div>' +
+      '</div>' +
+    '</div></div>';
+}
+
+function malzemeTalepleriPanel() {
+  const u = me();
+  const kilitli = u.rol === "egitmen" || u.rol === "il";
+  const list = kilitli ? MALZEME_TALEPLERI.filter(x => x.birim === u.birim) : MALZEME_TALEPLERI;
+
+  return '<div class="panel" style="margin-top:22px">' +
+    '<div class="panel-header"><span>' + ic("i-box") + ' İllerden Merkeze İletilen Malzeme Talepleri</span>' +
+      '<span class="badge-count">' + list.length + ' talep</span></div>' +
+    '<div class="table-wrapper"><table><thead><tr>' +
+      '<th>TALEP NO</th><th>ATÖLYE / İL</th><th>MALZEME KAPSAMI</th><th>ADET</th><th>ÖNCELİK</th><th>GEREKÇE</th><th>TARİH</th><th>DURUM</th>' +
+      (u.rol === "merkez" || u.rol === "koord" ? '<th>İŞLEM</th>' : '') +
+      '</tr></thead><tbody>' +
+    (list.length ? list.map(t => {
+      const stCls = t.durum.includes("Onay") ? "status-pill tamam" : t.durum.includes("Red") ? "status-pill gecikti" : "status-pill bekliyor";
+      return '<tr>' +
+        '<td class="tabular-date"><b>' + esc(t.id) + '</b></td>' +
+        '<td><span style="font-weight:700;color:var(--ink-900)">' + esc(bIdx[t.birim] ? bIdx[t.birim].il : "Genel") + '</span></td>' +
+        '<td class="task-title">' + esc(t.malzeme) + '</td>' +
+        '<td class="tabular-date"><b>' + t.adet + '</b></td>' +
+        '<td>' + prPill(t.oncelik) + '</td>' +
+        '<td style="font-size:12px;color:var(--ink-600);max-width:260px">' + esc(t.gerekce || "—") + '</td>' +
+        '<td class="tabular-date">' + fmt(t.tarih) + '</td>' +
+        '<td><span class="' + stCls + '">' + esc(t.durum) + '</span></td>' +
+        (u.rol === "merkez" || u.rol === "koord" ?
+          '<td><div style="display:flex;gap:6px">' +
+            (t.durum === "Bekliyor" ?
+              '<button class="btn sm" style="background:#16A34A" data-taleponayla="' + t.id + '">' + ic("i-check") + 'Onayla & Sevk Et</button>' +
+              '<button class="btn danger sm" data-talepred="' + t.id + '">Reddet</button>'
+              : '<span style="font-size:11px;color:var(--ink-400)">İşlem yapıldı</span>') +
+          '</div></td>' : '') +
+        '</tr>';
+    }).join('') : '<tr><td colspan="9"><div style="text-align:center;padding:24px;color:var(--ink-400)">Henüz merkeze iletilen bir malzeme talebi bulunmuyor.</div></td></tr>') +
+    '</tbody></table></div></div>';
+}
+
 function vEnvanter() {
   const u = me();
   const kilitli = u.rol === "egitmen" || u.rol === "il";
@@ -1142,6 +1207,8 @@ function vEnvanter() {
   const genelPc = Math.round(oz.reduce((a, x) => a + x.yeterli, 0) / Math.max(1, oz.reduce((a, x) => a + x.toplam, 0)) * 100);
 
   return page(kilitli ? bIdx[u.birim].il + " / " + bIdx[u.birim].ad : "Atölye Altyapısı", "Envanter ve Malzeme Yönetimi",
+    '<button class="btn" style="background:#0284C7" data-envtalepac="1">' + ic("i-box") +
+      (S.envTalepFormAcik ? "Talebi Gizle" : "Merkeze Malzeme Talebi İlet") + '</button>' +
     (kilitli ? '<button class="btn" data-envekleac="1">' + ic("i-plus") +
       (S.envEkleAcik ? "Formu Gizle" : "Katalogdan Malzeme Ekle") + '</button>' : '') +
     (yaz ? '<button class="btn ghost" data-envsayim="1">' + ic("i-check") + 'Sayımı Bugüne İşle</button>' : '') +
@@ -1153,6 +1220,7 @@ function vEnvanter() {
       kpi(vadeGecen, "Sayım Vadesi Geçen", vadeGecen ? "var(--astro-red)" : "#16A34A") +
       kpi("%" + genelPc, "Müfredat Hazırlığı", genelPc >= 85 ? "#16A34A" : "var(--astro-orange)") +
     '</div>' +
+    (S.envTalepFormAcik ? talepFormuPanel(u.birim) : '') +
     (kilitli && S.envEkleAcik ? eklePaneli(u.birim) : '') +
     '<div class="filter-bar">' +
       (kilitli ? '' :
@@ -1197,7 +1265,8 @@ function vEnvanter() {
           '"></div></div></div><div class="bar-percent">%' + x.pc + '</div></div>').join('') +
         '</div></div></div>' +
       '</div>' +
-    '</div>');
+    '</div>' +
+    malzemeTalepleriPanel());
 }
 
 function eklePaneli(bid) {
@@ -1989,6 +2058,82 @@ document.addEventListener("click", e => {
   if (d.yoktemizle) { S.yokFilt = { birim:"", grup:"", bas:"", bit:"" }; render(); return; }
 
   /* Envanter */
+  if (d.envtalepac) { S.envTalepFormAcik = !S.envTalepFormAcik; render(); return; }
+  if (d.envtalepgonder) {
+    const u2 = me();
+    const bid = (document.getElementById("tlpBirim") || {}).value || u2.birim || "b1";
+    const malzeme = (document.getElementById("tlpMalzeme") || {}).value || "Genel Malzeme Tedariği";
+    const adet = parseInt((document.getElementById("tlpAdet") || {}).value, 10) || 10;
+    const oncelik = (document.getElementById("tlpOncelik") || {}).value || "Yüksek";
+    const gerekce = (document.getElementById("tlpGerekce") || {}).value || "Stok ihtiyacı sebebiyle merkeze talep iletildi.";
+
+    const yeniTalep = {
+      id: "TLP-" + (++tlpSeq),
+      birim: bid,
+      malzeme: malzeme,
+      kod: "m_custom",
+      adet: adet,
+      oncelik: oncelik,
+      gerekce: gerekce,
+      talepEden: S.userId,
+      tarih: iso(TODAY),
+      durum: "Bekliyor",
+      not: "Merkez tedarik onayı bekliyor."
+    };
+    MALZEME_TALEPLERI.unshift(yeniTalep);
+
+    const ilAd = bIdx[bid] ? bIdx[bid].il : "İl";
+    bildir("u1", null, "talep", "📦 [MALZEME TALEBİ] " + ilAd + " atölyesinden " + adet + " adet '" + malzeme + "' talep edildi.");
+    bildir("u2", null, "talep", "📦 [MALZEME TALEBİ] " + ilAd + " atölyesinden " + adet + " adet '" + malzeme + "' talep edildi.");
+
+    const baslik = ilAd + " Atölyesi Malzeme Tedarik Talebi (" + malzeme + " - " + adet + " Adet)";
+    TASKS.push({
+      id: "GRV-" + (109000 + TASKS.length * 7),
+      baslik: baslik,
+      kategori: "Atölye Operasyonu",
+      birim: bid,
+      sorumlu: "u1",
+      olusturan: S.userId,
+      termin: iso(new Date(TODAY.getTime() + 4 * 864e5)),
+      durum: "Bekliyor",
+      oncelik: oncelik,
+      yuzde: 0,
+      sonGun: 0,
+      kaynak: "talep",
+      adimlar: adimlarFor(baslik),
+      ekler: [],
+      yorumlar: [],
+      komisyon: null,
+      altGrup: null,
+      olusturma: iso(TODAY),
+      log: [{ tarih: iso(TODAY), kim: S.userId, tip: "olusturma", not: ilAd + " tarafından malzeme talebi iletildi: " + gerekce }]
+    });
+
+    S.envTalepFormAcik = false;
+    toast(ilAd + " atölyesi için malzeme talebi Merkez Operasyona iletildi.");
+    render(); return;
+  }
+  if (d.taleponayla) {
+    const t2 = MALZEME_TALEPLERI.find(x => x.id === d.taleponayla);
+    if (t2) {
+      t2.durum = "Onaylandı (Sevkiyatta)";
+      t2.not = "Merkez depodan kargoya verildi. Takip No: T3-" + Math.floor(10000 + Math.random() * 90000);
+      bildir(t2.talepEden, null, "talep", "✅ Malzeme talebiniz onaylandı: " + t2.malzeme + " (" + t2.adet + " adet) kargoya verildi.");
+      toast(t2.id + " malzeme talebi onaylandı ve kargo sevkiyatına alındı.");
+      render();
+    }
+    return;
+  }
+  if (d.talepred) {
+    const t2 = MALZEME_TALEPLERI.find(x => x.id === d.talepred);
+    if (t2) {
+      t2.durum = "Reddedildi";
+      bildir(t2.talepEden, null, "talep", "❌ Malzeme talebiniz reddedildi: " + t2.malzeme);
+      toast(t2.id + " malzeme talebi reddedildi.");
+      render();
+    }
+    return;
+  }
   if (d.envdelta) {
     const e2 = ENVANTER.find(x => x.id === d.envdelta);
     e2.adet = Math.max(0, e2.adet + (+d.dv));

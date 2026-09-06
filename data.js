@@ -554,6 +554,37 @@ BIRIM.forEach((b, bi) => {
 });
 HAREKET.sort((a, b) => a.tarih.localeCompare(b.tarih));
 
+/* ── Malzeme Talepleri (İl -> Merkez Tedarik İstekleri) ── */
+let tlpSeq = 203;
+let MALZEME_TALEPLERI = [
+  {
+    id: "TLP-201",
+    birim: "b1",
+    malzeme: "3D Yazıcı Filament (PLA 1.75mm)",
+    kod: "m1",
+    adet: 15,
+    oncelik: "Yüksek",
+    gerekce: "Atölyedeki tüm filament stokları tükendi, öğrenci projesi için acil ihtiyaç.",
+    talepEden: "u4",
+    tarih: iso(new Date(TODAY.getTime() - 2 * 864e5)),
+    durum: "Bekliyor",
+    not: "Merkez tedarik onayı bekliyor."
+  },
+  {
+    id: "TLP-202",
+    birim: "b2",
+    malzeme: "Arduino Uno R3 Geliştirme Kartı",
+    kod: "m2",
+    adet: 20,
+    oncelik: "Kritik",
+    gerekce: "Robotik kodlama dersi öncesi asgari stok seviyesi altına düşüldü.",
+    talepEden: "u5",
+    tarih: iso(new Date(TODAY.getTime() - 4 * 864e5)),
+    durum: "Onaylandı (Sevkiyatta)",
+    not: "Merkez depodan kargoya verildi. Takip no: T3-77491"
+  }
+];
+
 /* ── Duyurular ── */
 const DUYURU_TIP = ["Resmî tatil","Belge teslimi","Eğitim takvimi","Sistem duyurusu","Etkinlik"];
 let DUYURU = [], dSeq = 0;
@@ -734,7 +765,7 @@ let S = {
   bildirimAcik: false,
   yokGrup: "", yokTarih: "", yokTaslak: null,
   envFilt: { bolge:"", il:"", birim:"", kat:"", faz:"", sadeceEksik:false, sadeceVade:false },
-  envEkleAcik: false, envEkleKod: "", envEkleAdet: "",
+  envEkleAcik: false, envTalepFormAcik: false, envEkleKod: "", envEkleAdet: "",
   istisna: { ad:"", kat:"Elektronik", faz:"f0", adet:"", gerekce:"" },
   katFaz: "", katYeniAcik: false,
   katYeni: { ad:"", kat:"Elektronik", faz:"f0", min:"", periyot:"60" },
