@@ -437,105 +437,195 @@ function vGorev() {
 /* ── 7. YENİ GÖREV OLUŞTURMA ── */
 function vOlustur() {
   return page("Operasyon", "Yeni Görev Oluştur",
-    '<button class="btn ghost" data-go="ayristirici">' + ic("i-wand") + 'Metinden Otomatik Ayrıştır</button>',
+    '<button class="btn ghost" data-go="ayristirici">' + ic("i-wand") + 'Metinden Otomatik Ayrıştır (AI)</button>',
     ipucu("Görev oluşturulduğunda ilgili il sorumlularına, koordinatörlüklere ve operasyon ekibine anlık bildirim iletilir.") +
-    '<div class="panel" style="max-width:920px"><div class="panel-body">' +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px">' +
-        '<div class="form-group wide"><label>GÖREV BAŞLIĞI</label><input type="text" id="c_t" placeholder="Örn. Atölye envanter sayımı ve eksik malzeme bildirimi"></div>' +
-        '<div class="form-group wide"><label>AÇIKLAMA VEYA GÖREV TALİMATI</label><textarea id="c_d" placeholder="Görev kapsamı, detaylı uygulama talimatları ve beklenen çıktılar..."></textarea></div>' +
-        
-        '<div class="form-group"><label>ÜLKE SEÇİMİ</label>' +
-          '<select id="c_ulke" onchange="const u=this.value; const selIl=document.getElementById(\'c_il_sec\'); Array.from(selIl.options).forEach(o=>{ if(o.value===\'__TUM__\') return; o.style.display=(!u||!o.dataset.ulke||o.dataset.ulke===u)?\'block\':\'none\'; }); selIl.value=\'__TUM__\';">' +
-            '<option value="">Tüm Ülkeler (Uluslararası Kapsam)</option>' +
-            ULKELER.map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('') +
-          '</select>' +
-        '</div>' +
+    '<div class="grid g-2-1" style="width:100%">' +
+      '<div>' +
+        '<div class="panel">' +
+          '<div class="panel-header"><span>' + ic("i-plus") + ' Görev Tanımlama ve Kapsam Bilgileri</span></div>' +
+          '<div class="panel-body">' +
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">' +
+              '<div class="form-group wide"><label>' + ic("i-list") + ' GÖREV BAŞLIĞI</label><input type="text" id="c_t" placeholder="Örn. Atölye envanter sayımı ve eksik malzeme bildirimi"></div>' +
+              '<div class="form-group wide"><label>' + ic("i-file") + ' AÇIKLAMA VEYA GÖREV TALİMATI</label><textarea id="c_d" placeholder="Görev kapsamı, detaylı uygulama talimatları ve beklenen çıktılar..."></textarea></div>' +
+              
+              '<div class="form-group"><label>' + ic("i-user") + ' ÜLKE SEÇİMİ</label>' +
+                '<select id="c_ulke" onchange="const u=this.value; const selIl=document.getElementById(\'c_il_sec\'); Array.from(selIl.options).forEach(o=>{ if(o.value===\'__TUM__\') return; o.style.display=(!u||!o.dataset.ulke||o.dataset.ulke===u)?\'block\':\'none\'; }); selIl.value=\'__TUM__\';">' +
+                  '<option value="">🌐 Tüm Ülkeler (Uluslararası Kapsam)</option>' +
+                  ULKELER.map(u => '<option value="' + esc(u) + '">' + (u === "Türkiye" ? "🇹🇷 " : u === "Azerbaycan" ? "🇦🇿 " : u === "KKTC" ? "🇹🇷 " : u === "Özbekistan" ? "🇺🇿 " : "🌐 ") + esc(u) + '</option>').join('') +
+                '</select>' +
+              '</div>' +
 
-        '<div class="form-group"><label>İNL KAPSAMI SEÇİMİ</label>' +
-          '<select id="c_il_sec" onchange="const il=this.value; const selB=document.getElementById(\'c_b\'); Array.from(selB.options).forEach(o=>{ if(o.value===\'__TUM__\') return; o.style.display=(!il||!o.dataset.il||o.dataset.il===il)?\'block\':\'none\'; }); selB.value=\'__TUM__\';">' +
-            '<option value="__TUM__" data-ulke="">[Tüm İller / Genel Kapsam]</option>' +
-            '<optgroup label="Türkiye (81 İl)">' +
-              ILLER.filter(x => x.ulke === "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="Türkiye">' + esc(x.ad) + '</option>').join('') +
-            '</optgroup>' +
-            '<optgroup label="Uluslararası İller / Merkezler">' +
-              ILLER.filter(x => x.ulke !== "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="' + esc(x.ulke) + '">' + esc(x.ad) + ' (' + esc(x.ulke) + ')</option>').join('') +
-            '</optgroup>' +
-          '</select>' +
-        '</div>' +
+              '<div class="form-group"><label>' + ic("i-user") + ' İL KAPSAMI SEÇİMİ</label>' +
+                '<select id="c_il_sec" onchange="const il=this.value; const selB=document.getElementById(\'c_b\'); Array.from(selB.options).forEach(o=>{ if(o.value===\'__TUM__\') return; o.style.display=(!il||!o.dataset.il||o.dataset.il===il)?\'block\':\'none\'; }); selB.value=\'__TUM__\';">' +
+                  '<option value="__TUM__" data-ulke="">📍 [Tüm İller / Genel Kapsam]</option>' +
+                  '<optgroup label="🇹🇷 Türkiye (81 İl)">' +
+                    ILLER.filter(x => x.ulke === "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="Türkiye">🏛️ ' + esc(x.ad) + '</option>').join('') +
+                  '</optgroup>' +
+                  '<optgroup label="🌍 Uluslararası İller / Merkezler">' +
+                    ILLER.filter(x => x.ulke !== "Türkiye").map(x => '<option value="' + esc(x.ad) + '" data-ulke="' + esc(x.ulke) + '">🌍 ' + esc(x.ad) + ' (' + esc(x.ulke) + ')</option>').join('') +
+                  '</optgroup>' +
+                '</select>' +
+              '</div>' +
 
-        '<div class="form-group"><label>DENEYAP ATÖLYESİ (BİRİM)</label>' +
-          '<select id="c_b">' +
-            '<option value="__TUM__" data-il="">[Tüm Atölyelere Atansın]</option>' +
-            BIRIM.map(b => '<option value="' + b.id + '" data-il="' + esc(b.il) + '">' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
-          '</select>' +
-        '</div>' +
+              '<div class="form-group"><label>' + ic("i-box") + ' DENEYAP ATÖLYESİ (BİRİM)</label>' +
+                '<select id="c_b">' +
+                  '<option value="__TUM__" data-il="">🏬 [Tüm Atölyelere Atansın]</option>' +
+                  BIRIM.map(b => '<option value="' + b.id + '" data-il="' + esc(b.il) + '">🏢 ' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
+                '</select>' +
+              '</div>' +
 
-        '<div class="form-group"><label>KOORDİNATÖRLÜK</label>' +
-          '<select id="c_koord">' +
-            '<option value="">— Genel Operasyon —</option>' +
-            KOORDINATORLUK.map(k => '<option value="' + esc(k) + '">' + esc(k) + '</option>').join('') +
-          '</select>' +
-        '</div>' +
+              '<div class="form-group"><label>' + ic("i-user") + ' KOORDİNATÖRLÜK</label>' +
+                '<select id="c_koord">' +
+                  '<option value="">📋 — Genel Operasyon —</option>' +
+                  KOORDINATORLUK.map(k => {
+                    const icn = k.includes("Bursiyer") ? "🎓 " : k.includes("Yarışma") ? "🏆 " : k.includes("Eğitmen") ? "🔬 " : k.includes("Atölye") ? "🛠️ " : k.includes("Tanıtım") ? "📣 " : "📋 ";
+                    return '<option value="' + esc(k) + '">' + icn + esc(k) + '</option>';
+                  }).join('') +
+                '</select>' +
+              '</div>' +
 
-        '<div class="form-group"><label>KATEGORİ</label><select id="c_k">' + KAT.map(k => '<option>' + k + '</option>').join('') + '</select></div>' +
-        '<div class="form-group"><label>ÖNCELİK SEVİYESİ</label><select id="c_o">' + ONCELIK.map(o =>
-          '<option' + (o === "Normal" ? " selected" : "") + '>' + o + '</option>').join('') + '</select></div>' +
-        '<div class="form-group"><label>TERMİN TARİHİ</label><input type="date" id="c_v" value="' +
-          iso(new Date(TODAY.getTime() + 10 * 864e5)) + '"></div>' +
+              '<div class="form-group"><label>' + ic("i-grid") + ' KATEGORİ</label>' +
+                '<select id="c_k">' + KAT.map(k => {
+                  const icn = k.includes("Atölye") ? "📁 " : k.includes("Sayım") ? "📋 " : k.includes("Malzeme") ? "🛠️ " : k.includes("Eğitmen") ? "🎓 " : k.includes("Rapor") ? "📊 " : k.includes("Kurumsal") ? "🏢 " : "🚨 ";
+                  return '<option value="' + esc(k) + '">' + icn + esc(k) + '</option>';
+                }).join('') + '</select>' +
+              '</div>' +
 
-        '<!-- Doküman ve Harici Bağlantı Ekleme Paneli -->' +
-        '<div class="form-group wide" style="background:#F8FAFC;padding:14px;border:1px solid var(--card-border);border-radius:var(--radius-sm);margin-top:4px">' +
-          '<label style="font-weight:700;color:var(--ink-900);font-size:13px;display:block;margin-bottom:8px">' +
-            'DOKÜMAN & REHBER BAĞLANTISI EKLE (OPSİYONEL)' +
-          '</label>' +
-          '<div style="display:grid;grid-template-columns:1.2fr 130px 1.5fr;gap:10px">' +
-            '<div>' +
-              '<label style="font-size:11px;color:var(--ink-600)">DOKÜMAN / BAĞLANTI BAŞLIĞI</label>' +
-              '<input type="text" id="c_ek_ad" placeholder="Örn. Sınav Uygulama Rehberi PDF">' +
-            '</div>' +
-            '<div>' +
-              '<label style="font-size:11px;color:var(--ink-600)">FORMAT / TÜR</label>' +
-              '<select id="c_ek_tur">' +
-                '<option value="pdf">PDF Dokümanı</option>' +
-                '<option value="gorsel">Görsel (PNG/JPG)</option>' +
-                '<option value="link">Harici Web URL</option>' +
-                '<option value="tablo">Excel / Tablo</option>' +
-              '</select>' +
-            '</div>' +
-            '<div>' +
-              '<label style="font-size:11px;color:var(--ink-600)">DOSYA YOLU VEYA HARİCİ URL LINK</label>' +
-              '<input type="text" id="c_ek_url" placeholder="https://deneyapturkiye.org/docs/rehber.pdf">' +
+              '<div class="form-group"><label>' + ic("i-alert") + ' ÖNCELİK SEVİYESİ</label>' +
+                '<select id="c_o">' + ONCELIK.map(o => {
+                  const icn = o === "Acil" ? "🔴 " : o === "Yüksek" ? "🟧 " : o === "Normal" ? "🟦 " : "⬜ ";
+                  return '<option' + (o === "Normal" ? " selected" : "") + ' value="' + esc(o) + '">' + icn + esc(o) + '</option>';
+                }).join('') + '</select>' +
+              '</div>' +
+
+              '<div class="form-group"><label>' + ic("i-clock") + ' TERMİN TARİHİ</label><input type="date" id="c_v" value="' +
+                iso(new Date(TODAY.getTime() + 10 * 864e5)) + '"></div>' +
+
+              '<!-- Doküman ve Harici Bağlantı Ekleme Paneli -->' +
+              '<div class="form-group wide" style="background:#F8FAFC;padding:18px;border:1.5px solid #CBD5E1;border-radius:var(--radius-sm);margin-top:6px">' +
+                '<label style="font-weight:800;color:#0F172A;font-size:13.5px;display:inline-flex;align-items:center;gap:8px;margin-bottom:12px">' +
+                  ic("i-file") + ' DOKÜMAN & REHBER BAĞLANTISI EKLE (OPSİYONEL)' +
+                '</label>' +
+                '<div style="display:grid;grid-template-columns:1.2fr 140px 1.5fr;gap:12px">' +
+                  '<div>' +
+                    '<label style="font-size:11.5px;color:#475569;font-weight:700">DOKÜMAN / BAĞLANTI BAŞLIĞI</label>' +
+                    '<input type="text" id="c_ek_ad" placeholder="Örn. Sınav Uygulama Rehberi PDF">' +
+                  '</div>' +
+                  '<div>' +
+                    '<label style="font-size:11.5px;color:#475569;font-weight:700">FORMAT / TÜR</label>' +
+                    '<select id="c_ek_tur">' +
+                      '<option value="pdf">📄 PDF Dokümanı</option>' +
+                      '<option value="gorsel">🖼️ Görsel (PNG/JPG)</option>' +
+                      '<option value="link">🌐 Harici Web URL</option>' +
+                      '<option value="tablo">📊 Excel / Tablo</option>' +
+                    '</select>' +
+                  '</div>' +
+                  '<div>' +
+                    '<label style="font-size:11.5px;color:#475569;font-weight:700">DOSYA YOLU VEYA HARİCİ URL LINK</label>' +
+                    '<input type="text" id="c_ek_url" placeholder="https://deneyapturkiye.org/docs/rehber.pdf">' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+
+              '<!-- Ortak Görev Bölümü -->' +
+              '<div class="form-group wide" style="background:#F8FAFC;padding:18px;border:1.5px solid #CBD5E1;border-radius:var(--radius-sm);margin-top:6px">' +
+                '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:800;color:#0F172A;font-size:13.5px">' +
+                  '<input type="checkbox" id="c_ortak_check" style="width:18px;height:18px" onchange="document.getElementById(\'ortak_alan\').style.display=this.checked?\'block\':\'none\'">' +
+                  ic("i-user") + ' Ortak Görev Tanımla (Çoklu İl / Atölye Sorumluluğu)' +
+                '</label>' +
+                '<div id="ortak_alan" style="display:none;margin-top:12px">' +
+                  '<p style="font-size:12.5px;color:#475569;margin-bottom:10px;font-weight:600">Bu görevi birlikte tamamlayacak 2. ve 3. DENEYAP Atölyesini seçin:</p>' +
+                  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+                    '<div><label style="font-size:11.5px;color:#475569;font-weight:700">2. ORTAK ATÖLYE</label><select id="c_ortak_b1">' +
+                      '<option value="">— Ortak Atölye Seçin —</option>' +
+                      BIRIM.map(b => '<option value="' + b.id + '">🏢 ' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
+                    '</select></div>' +
+                    '<div><label style="font-size:11.5px;color:#475569;font-weight:700">3. ORTAK ATÖLYE (OPSİYONEL)</label><select id="c_ortak_b2">' +
+                      '<option value="">— Yok —</option>' +
+                      BIRIM.map(b => '<option value="' + b.id + '">🏢 ' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
+                    '</select></div>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+
+              '<div class="form-group wide" style="flex-direction:row;gap:12px;margin-top:12px">' +
+                '<button class="btn" data-create="1">' + ic("i-plus") + 'Görevi Kaydet ve Yayınla</button>' +
+                '<button class="btn ghost" data-go="gorevler">İptal</button>' +
+              '</div>' +
             '</div>' +
           '</div>' +
-        '</div>' +
-
-        '<!-- Ortak Görev Bölümü -->' +
-        '<div class="form-group wide" style="background:#F8FAFC;padding:14px;border:1px solid var(--card-border);border-radius:var(--radius-sm);margin-top:4px">' +
-          '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;color:var(--ink-900);font-size:13px">' +
-            '<input type="checkbox" id="c_ortak_check" style="width:16px;height:16px" onchange="document.getElementById(\'ortak_alan\').style.display=this.checked?\'block\':\'none\'">' +
-            'Ortak Görev Tanımla (Çoklu İl / Atölye Sorumluluğu)' +
-          '</label>' +
-          '<div id="ortak_alan" style="display:none;margin-top:10px">' +
-            '<p style="font-size:12px;color:var(--ink-500);margin-bottom:10px">Bu görevi birlikte tamamlayacak 2. ve 3. DENEYAP Atölyesini seçin:</p>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
-              '<div><label style="font-size:11px;color:var(--ink-600)">2. ORTAK ATÖLYE</label><select id="c_ortak_b1">' +
-                '<option value="">— Ortak Atölye Seçin —</option>' +
-                BIRIM.map(b => '<option value="' + b.id + '">' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
-              '</select></div>' +
-              '<div><label style="font-size:11px;color:var(--ink-600)">3. ORTAK ATÖLYE (OPSİYONEL)</label><select id="c_ortak_b2">' +
-                '<option value="">— Yok —</option>' +
-                BIRIM.map(b => '<option value="' + b.id + '">' + esc(b.il) + ' / ' + esc(b.ad) + ' (' + esc(b.ulke) + ')</option>').join('') +
-              '</select></div>' +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-
-        '<div class="form-group wide" style="flex-direction:row;gap:10px;margin-top:6px">' +
-          '<button class="btn" data-create="1">' + ic("i-plus") + 'Görevi Kaydet ve Yayınla</button>' +
-          '<button class="btn ghost" data-go="gorevler">İptal</button>' +
         '</div>' +
       '</div>' +
-    '</div></div>');
+
+      '<div>' +
+        '<!-- Kart 1: Şablonlar -->' +
+        '<div class="panel" style="margin-bottom:18px">' +
+          '<div class="panel-header"><span>' + ic("i-wand") + ' Standart Görev Şablonları</span></div>' +
+          '<div class="panel-body">' +
+            '<p style="font-size:12.5px;color:#475569;margin-bottom:14px;font-weight:600">Sık kullanılan iş akışlarını otomatik doldurmak için bir şablon seçin:</p>' +
+            '<div style="display:flex;flex-direction:column;gap:10px">' +
+              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:10px 14px;font-weight:700" data-sablon="envanter">' +
+                ic("i-box") + ' Atölye Envanter Sayımı & Eksik Bildirimi' +
+              '</button>' +
+              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:10px 14px;font-weight:700" data-sablon="guvenlik">' +
+                ic("i-alert") + ' Fiziki Güvenlik & Yangın Tedbir Kontrolü' +
+              '</button>' +
+              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:10px 14px;font-weight:700" data-sablon="sinav">' +
+                ic("i-check") + ' Uygulama Sınavı Hazırlığı & Gözetmen Planı' +
+              '</button>' +
+              '<button class="btn ghost sm" style="justify-content:flex-start;text-align:left;padding:10px 14px;font-weight:700" data-sablon="sezon">' +
+                ic("i-grid") + ' Sezon Açılışı Hazırlık & Müfredat Kontrolü' +
+              '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<!-- Kart 2: Dağıtım Özeti -->' +
+        '<div class="panel" style="margin-bottom:18px">' +
+          '<div class="panel-header"><span>' + ic("i-chart") + ' Görev Dağıtım Özeti</span></div>' +
+          '<div class="panel-body" style="font-size:13px;line-height:1.6;color:#1E293B">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #E2E8F0">' +
+              '<span><b>Türkiye (81 İl) Kapsamı:</b></span>' +
+              '<span class="badge-count" style="background:#E0F2FE;color:#0369A1;font-weight:700">81 İl Aktif</span>' +
+            '</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #E2E8F0">' +
+              '<span><b>Uluslararası Merkezler:</b></span>' +
+              '<span class="badge-count" style="background:#FEF3C7;color:#92400E;font-weight:700">3 Ülke (Azerbaycan, KKTC, Özbekistan)</span>' +
+            '</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #E2E8F0">' +
+              '<span><b>Toplam DENEYAP Atölyesi:</b></span>' +
+              '<span class="badge-count" style="background:#DCFCE7;color:#166534;font-weight:700">' + BIRIM.length + ' Atölye</span>' +
+            '</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">' +
+              '<span><b>Aktif Koordinatörlükler:</b></span>' +
+              '<span class="badge-count" style="background:#F3E8FF;color:#6B21A8;font-weight:700">6 Birim</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<!-- Kart 3: Operasyonel Yayın Kuralları -->' +
+        '<div class="panel" style="margin-bottom:18px">' +
+          '<div class="panel-header"><span>' + ic("i-bell") + ' Operasyonel Yayın Kuralları</span></div>' +
+          '<div class="panel-body" style="font-size:13px;color:#334155;line-height:1.55">' +
+            '<p style="margin-bottom:10px"><b>1. Bildirim Dağıtımı:</b> Görev yayınlandığında hedef il sorumlusuna ve bağlı tüm ekibe anlık bildirim iletilir.</p>' +
+            '<p style="margin-bottom:10px"><b>2. Risk Skoru Motoru:</b> Görev termin süresine kalan gün ve geçmiş birim gecikmelerine göre otomatik risk skoru hesaplanır.</p>' +
+            '<p><b>3. Revizyon Hakları:</b> Merkez ve koordinatör ekipleri tamamlanan veya devam eden görevlere revizyon talebi ekleyebilir.</p>' +
+          '</div>' +
+        '</div>' +
+
+        '<!-- Kart 4: AI Asistan Hızlı Kısayol -->' +
+        '<div class="panel" style="background:linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);border:1px solid #7DD3FC">' +
+          '<div class="panel-body" style="display:flex;flex-direction:column;gap:10px;text-align:center;align-items:center">' +
+            '<div style="width:42px;height:42px;border-radius:50%;background:#0284C7;color:#fff;display:grid;place-items:center;box-shadow:0 4px 10px rgba(2,132,199,0.3)">' +
+              ic("i-wand") +
+            '</div>' +
+            '<div style="font-weight:800;font-size:15px;color:#0369A1">Serbest Metinden Görev Üretin</div>' +
+            '<p style="font-size:12px;color:#0369A1;margin:0">Toplantı notu veya e-posta metnini yapıştırarak görev başlığı, termin, öncelik ve birimi otomatik ayrıştırın.</p>' +
+            '<button class="btn sm" data-go="ayristirici" style="background:#0284C7;margin-top:4px">' + ic("i-wand") + 'Metin Ayrıştırıcıya Git</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>');
 }
 
 /* ── 8. YAPAY ZEKÂ GÖREV AYRIŞTIRICI ── */
@@ -1519,6 +1609,54 @@ document.addEventListener("click", e => {
     const sy = sayimTara();
     toast(d.ilerle + " gün ilerletildi. " + n + " yeni termin uyarısı oluştu.");
     render(); return;
+  }
+
+  if (d.sablon) {
+    const sablonlar = {
+      envanter: {
+        t: "Atölye Envanter Sayımı & Eksik Malzeme Bildirimi",
+        d: "DENEYAP atölyesindeki tüm 3D yazıcı, robotik set, sarf malzeme ve el aletlerinin fiziksel sayımının yapılması ve eksik listesinin sisteme girilmesi.",
+        k: "Periyodik Sayım",
+        o: "Yüksek",
+        koord: "Atölyeler & Saha Operasyonları"
+      },
+      guvenlik: {
+        t: "Atölye Fiziki Güvenlik & Yangın Tedbir Kontrolü",
+        d: "Atölye yangın tüplerinin basınç kontrolü, acil çıkış yönlendirmeleri, ilk yardım dolabı stoku ve elektrik tesisat güvenliğinin denetlenmesi.",
+        k: "Güvenlik & Yangın",
+        o: "Acil",
+        koord: "Atölyeler & Saha Operasyonları"
+      },
+      sinav: {
+        t: "Uygulama Sınavı Hazırlığı & Gözetmen Operasyon Planı",
+        d: "Yaklaşan Deneyap uygulama sınavı için sınav salonu hazırlıkları, sınav malzemelerinin dağıtımı, gözetmen görevlendirmeleri ve sınav evraklarının kontrolü.",
+        k: "Kurumsal Hazırlık & Sezon",
+        o: "Acil",
+        koord: "Yarışmalar Koordinatörlüğü"
+      },
+      sezon: {
+        t: "Yeni Sezon Açılışı Hazırlık & Müfredat Kontrolü",
+        d: "Yeni eğitim dönemi öncesi dersliklerin düzenlenmesi, eğitmen atamalarının kesinleşmesi, öğrenci yoklama listelerinin basılması ve ilk hafta malzemelerinin kontrolü.",
+        k: "Eğitmen & Ders Programı",
+        o: "Yüksek",
+        koord: "Bursiyer Koordinatörlüğü"
+      }
+    };
+    const s = sablonlar[d.sablon];
+    if (s) {
+      const elT = document.getElementById("c_t");
+      const elD = document.getElementById("c_d");
+      const elK = document.getElementById("c_k");
+      const elO = document.getElementById("c_o");
+      const elKoord = document.getElementById("c_koord");
+      if (elT) elT.value = s.t;
+      if (elD) elD.value = s.d;
+      if (elK) elK.value = s.k;
+      if (elO) elO.value = s.o;
+      if (elKoord) elKoord.value = s.koord;
+      toast("'" + s.t.slice(0, 32) + "...' şablonu form alanlarına yüklendi.");
+    }
+    return;
   }
 
   if (d.create) {

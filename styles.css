@@ -655,11 +655,15 @@ main {
 /* ══════════════════════════════════════════════════════════════════════
    SAYFA İÇERİK YAPISI (PAGE & HEADER)
    ══════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════
+   SAYFA İÇERİK YAPISI (PAGE & HEADER)
+   ══════════════════════════════════════════════════════════════════════ */
 .page {
   padding: 24px 32px 60px;
-  max-width: 1760px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -667,7 +671,7 @@ main {
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
@@ -676,22 +680,23 @@ main {
   align-items: center;
   gap: 6px;
   font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.12em;
-  color: var(--astro-blue);
+  color: var(--astro-blue-dark);
   text-transform: uppercase;
   background: var(--astro-blue-light);
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: var(--radius-xs);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(2, 132, 199, 0.2);
 }
 
 .page-title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 26px;
-  color: var(--ink-900);
+  font-size: 30px;
+  color: #0F172A;
   letter-spacing: -0.025em;
   line-height: 1.15;
 }
@@ -706,9 +711,9 @@ main {
 /* ── Modern Butonlar ── */
 .btn {
   font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 12.5px;
-  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 9px 18px;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   background: var(--astro-gradient-btn);
@@ -716,7 +721,7 @@ main {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(230, 57, 70, 0.25);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -730,20 +735,20 @@ main {
 
 .btn.ghost {
   background: #FFFFFF;
-  color: var(--ink-700);
-  border-color: var(--card-border);
+  color: var(--ink-800);
+  border-color: #CBD5E1;
   box-shadow: var(--shadow-sm);
 }
 .btn.ghost:hover {
   background: var(--bg-subtle);
   color: var(--ink-900);
-  border-color: var(--ink-300);
+  border-color: var(--ink-400);
   transform: translateY(-1px);
 }
 
 .btn.sm {
-  padding: 5px 11px;
-  font-size: 11.5px;
+  padding: 6px 13px;
+  font-size: 12px;
   border-radius: var(--radius-xs);
 }
 
@@ -760,6 +765,85 @@ main {
   cursor: not-allowed;
   transform: none !important;
   box-shadow: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   FORM KONTROLLERİ VE ETİKETLER
+   ══════════════════════════════════════════════════════════════════════ */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-group.wide {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #0F172A;
+  text-transform: uppercase;
+}
+
+.form-group label svg {
+  width: 18px;
+  height: 18px;
+  color: var(--astro-blue);
+  background: var(--astro-blue-light);
+  padding: 3px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 11px 15px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.form-group select option {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 10px;
+  color: #0F172A;
+}
+
+.form-group select optgroup {
+  font-weight: 800;
+  color: var(--astro-blue-dark);
+  font-size: 13px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--astro-blue);
+  box-shadow: 0 0 0 3.5px var(--astro-blue-light);
+}
+
+.form-group textarea {
+  min-height: 105px;
+  resize: vertical;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -852,39 +936,49 @@ main {
 }
 
 .panel-header {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--card-border-subtle);
+  padding: 16px 22px;
+  border-bottom: 1.5px solid #CBD5E1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--ink-900);
-  background: var(--card-bg);
+  font-weight: 800;
+  font-size: 16px;
+  color: #0F172A;
+  background: #F8FAFC;
+}
+
+.panel-header svg {
+  width: 20px;
+  height: 20px;
+  color: var(--astro-blue-dark);
+  vertical-align: -3px;
+  margin-right: 4px;
 }
 
 .panel-header .badge-count {
   font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--ink-600);
-  background: var(--bg-subtle);
-  border: 1px solid var(--card-border);
+  font-size: 11px;
+  font-weight: 700;
+  color: #0369A1;
+  background: #E0F2FE;
+  border: 1px solid #7DD3FC;
   border-radius: var(--radius-xs);
-  padding: 2px 8px;
+  padding: 3px 10px;
 }
 
 .panel-body {
-  padding: 20px;
+  padding: 22px;
 }
 
 .panel-footer {
-  padding: 11px 20px;
+  padding: 12px 22px;
   border-top: 1px solid var(--card-border-subtle);
   background: var(--bg-subtle);
-  font-size: 11.5px;
-  color: var(--ink-500);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-600);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -895,13 +989,16 @@ main {
 /* Grid Yerleşimleri */
 .grid {
   display: grid;
-  gap: 18px;
+  gap: 20px;
+  width: 100%;
 }
 .g-2-1 {
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.1fr);
+  width: 100%;
 }
 .g-3 {
-  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  width: 100%;
 }
 
 @media (max-width: 1100px) {
@@ -915,12 +1012,13 @@ main {
    ══════════════════════════════════════════════════════════════════════ */
 .table-wrapper {
   overflow-x: auto;
+  width: 100%;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 13.5px;
   min-width: 640px;
 }
 
