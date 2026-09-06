@@ -243,7 +243,9 @@ function filtreBar(opts) {
     '<div class="form-group"><label>DURUM</label><select data-f="durum">' +
       opt(["Bekliyor","Devam Ediyor","Tamamlandı","Gecikti"], f.durum) + '</select></div>' +
     '<div class="form-group"><label>ÖNCELİK</label><select data-f="oncelik">' + opt(ONCELIK, f.oncelik) + '</select></div>' +
-    '<div class="form-group" style="flex:1;min-width:200px"><label>ARAMA</label><input type="text" data-f="q" value="' +
+    '<div class="form-group" style="min-width:200px"><label>KOORDİNATÖRLÜK</label><select data-f="koord">' +
+      opt(KOORDINATORLUK, f.koord) + '</select></div>' +
+    '<div class="form-group" style="flex:1;min-width:180px"><label>ARAMA</label><input type="text" data-f="q" value="' +
       esc(f.q) + '" placeholder="Görev adı, il veya kod ara..."></div>' +
     '<button class="btn ghost sm" data-gelismis="1">' + ic("i-list") + 'Gelişmiş Filtreler' +
       (gelismisSayac() ? " (" + gelismisSayac() + ")" : "") + '</button>' +
@@ -1601,7 +1603,7 @@ document.addEventListener("click", e => {
   if (d.sor) { S.sor = true; render(); return; }
   if (d.kapat) { S.sor = false; render(); return; }
   if (d.sekme) { S.sekme = d.sekme; S.gorevId = null; render(); return; }
-  if (d.clear) { S.filt = { bolge:"", il:"", birim:"", komisyon:"", durum:"", oncelik:"", kat:"", q:"" }; S.gelismis = false; render(); return; }
+  if (d.clear) { S.filt = { ulke:"", bolge:"", il:"", birim:"", komisyon:"", koord:"", durum:"", oncelik:"", kat:"", q:"" }; S.gelismis = false; render(); return; }
   if (d.okundu) { NOTIF.forEach(n => { if (n.user === S.userId) n.okundu = true; }); render(); return; }
   if (d.bell) { S.bildirimAcik = !S.bildirimAcik; render(); return; }
 
